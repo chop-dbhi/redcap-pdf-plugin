@@ -1,9 +1,9 @@
 <?php
 error_reporting(0);
-require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'redcap_connect.php';
+require_once dirname(dirname(dirname(dirname(__FILE__)))) . DIRECTORY_SEPARATOR . 'redcap_connect.php';
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'config.php';
 
-$temp_folder = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'temp';
+$temp_folder = dirname(dirname(dirname(dirname(__FILE__)))) . DIRECTORY_SEPARATOR . 'temp';
 $temp_dir =tempnam($temp_folder, '');
 
 if (file_exists($temp_dir)){
@@ -14,7 +14,6 @@ chdir($temp_dir);
 
 $INDEX_DIR = dirname(__FILE__) . DIRECTORY_SEPARATOR;
 $SRC_DIR = $INDEX_DIR . 'src' . DIRECTORY_SEPARATOR;
-
 if (isset($_GET['pid'])){
     $pid = $_GET['pid'];
     $config_file = $INDEX_DIR . "config_files" . DIRECTORY_SEPARATOR . "const_" . $pid . ".cfg";
@@ -34,28 +33,36 @@ if (isset($_GET['pid'])){
 			            $val = "'" . $val . "'";
 		            }   
 	            }
+            }else{
+                require_once 'warning.php';
+                exit;
             }
-        }
-        
-        if (array_key_exists('base', $forms)){
-            if (array_key_exists('__forms', $forms['base'])){
-                    $base_arr = explode(',', str_replace(' ', '', $forms['base']['__forms']));
-                    foreach ($base_arr as $val){
-                        $val="'" . $val . "'";
-                    }
-            }
-        }
-
-        $combined = array_merge($form_arr, $base_arr);
-        $form_print = implode(',', $combined);
     
+            if (array_key_exists('base', $forms)){
+                if (array_key_exists('__forms', $forms['base'])){
+                        $base_arr = explode(',', str_replace(' ', '', $forms['base']['__forms']));
+                        foreach ($base_arr as $val){
+                            $val="'" . $val . "'";
+                        }
+                }
+            }
+
+            $combined = array_merge($form_arr, $base_arr);
+            $form_print = implode(',', $combined);
+        }else{
+            $form_print = null;
+            $con = null;
+            $zip_name = 'redcap_pdf.zip';
+        }
     }else{
         $form_print = null;
         $con = null;
         $zip_name = 'redcap_pdf.zip';
     }
+}else{   
+    require_once 'errors.php';
+    exit;
 }
-
 require_once $INDEX_DIR . 'src' . DIRECTORY_SEPARATOR . 'get_metadata.php';
 $xml_data = Metadata::getRecords($pid, $form_print);
 $xml_vals = Metadata::xml($xml_data);
@@ -89,7 +96,6 @@ header('Content-Length: ' . filesize($zip_name));
 header('Connection: Close');
 ob_end_flush();
 readfile($zip_name);
-
 //clean-up - remove all created files and directory.
 foreach (scandir(getcwd()) as $file){
    if (is_dir($file) === false){
