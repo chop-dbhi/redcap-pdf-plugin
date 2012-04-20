@@ -252,7 +252,6 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
         params = {}
-
     if len(argv) == 5:
         argv.pop()
         config_file = argv.pop()

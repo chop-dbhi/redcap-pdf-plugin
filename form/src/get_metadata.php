@@ -1,7 +1,4 @@
 <?php
-
-require_once dirname(dirname(dirname(dirname(__FILE__)))) . DIRECTORY_SEPARATOR . "redcap_connect.php"; 
-
 class Metadata {
     public static function xml($dataset)
     {
