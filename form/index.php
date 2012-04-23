@@ -1,10 +1,10 @@
 <?php
 error_reporting(0);
-require_once dirname(dirname(dirname(dirname(__FILE__)))) . DIRECTORY_SEPARATOR . 'redcap_connect.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'config.php';
 
-$temp_folder = dirname(dirname(dirname(dirname(__FILE__)))) . DIRECTORY_SEPARATOR . 'temp';
-$temp_dir =tempnam($temp_folder, '');
+require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'config.php';
+require_once $redcap_connect_dir . 'redcap_connect.php';
+
+$temp_dir=tempnam(APP_PATH_TEMP, '');
 
 if (file_exists($temp_dir)){
     unlink($temp_dir);
@@ -25,19 +25,7 @@ if (isset($_GET['pid'])){
         if(isset($_GET['const'])){
             $con = $_GET['const'];
             $zip_name = $con . '_pdf.zip';
-       
-	        if (array_key_exists($con, $forms)){
-	            if (array_key_exists('__forms', $forms[$con])){
-		            $form_arr = explode(',',str_replace(' ', '',$forms[$con]['__forms']));
-		            foreach ($form_arr as &$val){
-			            $val = "'" . $val . "'";
-		            }   
-	            }
-            }else{
-                require_once 'warning.php';
-                exit;
-            }
-    
+            
             if (array_key_exists('base', $forms)){
                 if (array_key_exists('__forms', $forms['base'])){
                         $base_arr = explode(',', str_replace(' ', '', $forms['base']['__forms']));
@@ -46,9 +34,19 @@ if (isset($_GET['pid'])){
                         }
                 }
             }
-
-            $combined = array_merge($form_arr, $base_arr);
-            $form_print = implode(',', $combined);
+	        if (array_key_exists($con, $forms)){
+	            if (array_key_exists('__forms', $forms[$con])){
+		            $form_arr = explode(',',str_replace(' ', '',$forms[$con]['__forms']));
+		            foreach ($form_arr as &$val){
+			            $val = "'" . $val . "'";
+		            }   
+	            }
+                $combined = array_merge($form_arr, $base_arr);
+                $form_print = implode(',', $combined);
+            }else{
+                require_once 'warning.php';
+                exit;
+            }
         }else{
             $form_print = null;
             $con = null;
@@ -96,6 +94,7 @@ header('Content-Length: ' . filesize($zip_name));
 header('Connection: Close');
 ob_end_flush();
 readfile($zip_name);
+
 //clean-up - remove all created files and directory.
 foreach (scandir(getcwd()) as $file){
    if (is_dir($file) === false){
