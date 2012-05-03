@@ -1,4 +1,5 @@
 import re
+import sys
 
 class BranchingLogicError(Exception):
     ''' Error raised when an error in parsing logic occurs.
@@ -6,6 +7,8 @@ class BranchingLogicError(Exception):
     def __init__(self, msg, logic):
         self.msg = msg
         self.logic = logic
+        print msg
+        print logic
 
 class LogicParser(object):
     def __init__(self):
@@ -51,13 +54,17 @@ class LogicParser(object):
         var_name -- The variable name for the element.
         logic -- The string containing the branching logic for the element.
         '''
-        orig_str = logic
-        
+      
+        space = re.compile('\s+')
         variable=re.compile('((?:\[[0-9a-z_A-Z]*\])?\[([0-9a-z_A-Z]+)\(?([0-9]*)\)?\]\s?([=><]+)\s?[\'\"]?([\s0-9]*)[\'\"]?)(\s*and|\s*or)?\s*(.*)')
         function=re.compile('\s*(([a-zA-Z_0-9]+\([^\)]*\))\s*([=><]*)\s*\'?\"?\s*([0-9]*)\s*\'?\"?\s*)(.*)')
+        logic = re.sub(space, ' ', logic)
+
+        orig_str = logic
         
         # Evaluate the variables in the expression
         var = variable.search(logic)
+        
         while var != None:
             repl_str = var.group(1)
             name = var.group(2)
@@ -72,6 +79,7 @@ class LogicParser(object):
                 new_val = self._get_val(name, op, val)
             
             new_val = " %(value)s " %{'value': new_val}
+             
             orig_str = re.sub(re.escape(repl_str), new_val, orig_str)
             var = variable.search(remaining)
         
@@ -93,6 +101,8 @@ class LogicParser(object):
                 self.blacklist.append(var_name)
             return result
         except:
+            e = sys.exc_info()[1]
+            print e
             raise BranchingLogicError("\'%(logic_str)s\' cannot be properly parsed." 
                 %{'logic_str': logic}, logic)
         return None
