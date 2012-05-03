@@ -381,14 +381,17 @@ class Form(object):
         self._x, self._y = self.text_obj.getCursor()
 
     def _time_space(self, not_start=True):
+        space = self.char_len * .75
         if not_start:
-            space = self.char_len * .75
             self.text_obj.setTextOrigin(self._x + space/2.0, self._y - space/2.0)
             self._x, self._y = self.text_obj.getCursor()
             self.text_obj.textOut(':')
             self.text_obj.setTextOrigin(self._x + space, self._y + space/2.0)
             self._x, self._y = self.text_obj.getCursor()
-    
+        else:
+            self.text_obj.setTextOrigin(self._x + space, self._y)
+            self._x, self._y = self.text_obj.getCursor()
+
     def _draw_txt_box(self, txt_format, space_callback):
         self.canvas.setLineWidth(.5)
         up_y  = self._y - self.font_size
@@ -607,7 +610,6 @@ class Form(object):
         self.canvas.line(self._x, up_y, self._x, down_y)
         self.canvas.line(self._x + line_len, up_y, self._x + line_len, down_y)
         self.canvas.line(middle_x, up_y, middle_x, down_y)
-        
         
         #TODO: make sure that the string text fits into a fixed with space. If
         #not word wrap.
