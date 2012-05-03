@@ -259,13 +259,11 @@ class Form(object):
                 wrd_len = self.canvas.stringWidth(line_str, self.font,
                     self.font_size) 
                 if self._x + wrd_len + new_wrd_len > self._right:
-                    if self._x != self._left:
-                        self.new_line(**kwargs)
                     self.text_obj.textOut(line_str)
+                    self.new_line(**kwargs)
                     line_str = ""
                 line_str+=word + " "
             if not line_str == "": 
-                self.new_line(**kwargs)
                 self.text_obj.textOut(line_str)
                 line_str = line_str.strip()
                 self.text_obj.setTextOrigin(self._x +
