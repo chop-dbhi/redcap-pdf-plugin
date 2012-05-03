@@ -242,11 +242,11 @@ class Form(object):
         Arguments:
         text -- The string to print to the form.
         '''
-       
+        text = text.strip() 
         len_txt = self.canvas.stringWidth(text, self.font, self.font_size)
         if len_txt > self._right - self._left:
             if not self._x == self._left:
-               self.new_line(**kwargs)
+                self.new_line(**kwargs)
             words = text.split()
             len_words = map(lambda wrd: self.canvas.stringWidth(wrd, self.font,
                 self.font_size), words)
@@ -505,12 +505,12 @@ class Form(object):
         self._x, self._y = self.text_obj.getCursor()
  
     def _multi_choice(self, text, choices, shape_callback, size=12):
+        text = text.strip()
         num_opts = len(choices)
         len_options = map(lambda choice: self.canvas.stringWidth(choice, self.font, self.font_size), choices)
         sorted_len = sorted(len_options, reverse=True)
         total_len = sum(len_options) + self.char_len * (num_opts + 1)
         ques_len = self.canvas.stringWidth(text, self.font, self.font_size)
-        
         if (total_len + self.char_len * num_opts + ques_len <=
             self._right - self._left):
             if (self._x + total_len + self.char_len * (num_opts + 1) + ques_len
@@ -529,7 +529,7 @@ class Form(object):
                     self._x, self._y = self.text_obj.getCursor()
         else:
             if self._x != self._left:
-               self.new_line()
+                self.new_line()
             self.print_text(text, break_text=True)
             self.new_line(break_text=True)
             
@@ -538,7 +538,7 @@ class Form(object):
                     num_opts)) / (num_opts * 1.0)
             else:
                 size_space = sorted_len[0] + self.char_len + size
-            
+     
             num_per_row = floor((self._right - self._left) /(size_space) )
             rows = ceil(num_opts / num_per_row)   
 
