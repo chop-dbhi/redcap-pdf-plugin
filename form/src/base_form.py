@@ -252,7 +252,6 @@ class Form(object):
                 self.font_size), words)
             line = 0
             line_str = ""
-            start = False
             while len(words) > 0:
                 word = words.pop(0) + ""
                 new_wrd_len = self.canvas.stringWidth(word,self.font,
@@ -260,9 +259,9 @@ class Form(object):
                 wrd_len = self.canvas.stringWidth(line_str, self.font,
                     self.font_size) 
                 if self._x + wrd_len + new_wrd_len > self._right:
-                    self.new_line(**kwargs)
+                    if self._x != self._left:
+                        self.new_line(**kwargs)
                     self.text_obj.textOut(line_str)
-                    start = True
                     line_str = ""
                 line_str+=word + " "
             if not line_str == "": 
@@ -529,7 +528,7 @@ class Form(object):
                     self._x, self._y = self.text_obj.getCursor()
         else:
             if self._x != self._left:
-                self.new_line()
+                self.new_line(break_text=True)
             self.print_text(text, break_text=True)
             self.new_line(break_text=True)
             
