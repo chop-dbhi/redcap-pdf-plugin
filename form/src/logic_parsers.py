@@ -18,7 +18,7 @@ class LogicParser(object):
     def _get_val(self, var, op, val, checked='1'):
         if self.const.has_key(var):
             if op =='=':
-                op = "=="
+                op = '=='
             if any(eval(str(v) + op + val) for v in self.const[var]):
                 if checked == '1':
                     return True
@@ -56,7 +56,7 @@ class LogicParser(object):
         '''
       
         space = re.compile('\s+')
-        variable=re.compile('((?:\[[0-9a-z_A-Z]*\])?\[([0-9a-z_A-Z]+)\(?([0-9]*)\)?\]\s?([=><]+)\s?[\'\"]?([\s0-9]*)[\'\"]?)(\s*and|\s*or)?\s*(.*)')
+        variable=re.compile('((?:\[[0-9a-z_A-Z]*\])?\[([0-9a-z_A-Z]+)\(?([0-9]*)\)?\]\s?([=><]+)\s?[\'\"]?(-?[\s0-9]*)[\'\"]?)(\s*and|\s*or)?\s*(.*)')
         function=re.compile('\s*(([a-zA-Z_0-9]+\([^\)]*\))\s*([=><]*)\s*\'?\"?\s*([0-9]*)\s*\'?\"?\s*)(.*)')
         logic = re.sub(space, ' ', logic)
 
@@ -72,12 +72,12 @@ class LogicParser(object):
             val = var.group(5)
             checkbox = var.group(3)
             remaining = var.group(7)
-            
+
             if checkbox != '':
                 new_val = self._get_val(name, op, checkbox, val)
             else:
                 new_val = self._get_val(name, op, val)
-            
+
             new_val = " %(value)s " %{'value': new_val}
              
             orig_str = re.sub(re.escape(repl_str), new_val, orig_str)
@@ -103,6 +103,7 @@ class LogicParser(object):
         except:
             e = sys.exc_info()[1]
             print e
+            print sys.exc_info()
             raise BranchingLogicError("\'%(logic_str)s\' cannot be properly parsed." 
                 %{'logic_str': logic}, logic)
         return None
