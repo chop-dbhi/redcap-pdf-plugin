@@ -509,12 +509,15 @@ class Form(object):
         len_options = map(lambda choice: self.canvas.stringWidth(choice, self.font, self.font_size), choices)
         sorted_len = sorted(len_options, reverse=True)
         total_len = sum(len_options) + self.char_len * (num_opts + 1)
-        ques_len = self.canvas.stringWidth(text, self.font, self.font_size)
-        if (total_len + self.char_len * num_opts + ques_len <=
+        ques_len = self.canvas.stringWidth(text, self.font, self.font_size) 
+
+        #Print Multiple Choice Question on same line if possible
+        if (total_len + self.char_len * (num_opts + 1) + ques_len <=
             self._right - self._left):
             if (self._x + total_len + self.char_len * (num_opts + 1) + ques_len
                 > self._right):
-                self.new_line()
+                if self._x != self._left:
+                    self.new_line()
             self.print_text(text, break_text=True)
             self.text_obj.setTextOrigin(self._x + self.char_len * 2, self._y)
             self._x, self._y = self.text_obj.getCursor()
@@ -532,10 +535,11 @@ class Form(object):
             self.print_text(text, break_text=True)
             self.new_line(break_text=True)
             
+            #If all choices will fit on the same line then equally space
             if (sorted_len[0] * num_opts) + (num_opts * size) + (num_opts * self.char_len) < self._right - self._left:
-                size_space = (self._right - (self._left + size *
-                    num_opts)) / (num_opts * 1.0)
+                size_space = (self._right - (self._left + size)) / (num_opts * 1.0)
             else:
+                #Find largest choice and base columns off that
                 size_space = sorted_len[0] + self.char_len + size
      
             num_per_row = floor((self._right - self._left) /(size_space) )
