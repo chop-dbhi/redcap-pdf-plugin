@@ -75,7 +75,7 @@ class RedcapForm(Form):
         Form.date_element(self, question, 'yyyymmdd')
 
     def date_dmy(self, question):
-        Form.date_elemenet(self, question, 'ddmmyyyy')
+        Form.date_element(self, question, 'ddmmyyyy')
     
     def time(self, question):
         Form.time_element(self, question, 'hhmm')
