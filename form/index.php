@@ -44,7 +44,7 @@ if (isset($_GET['pid'])){
                 $combined = array_merge($form_arr, $base_arr);
                 $form_print = implode(',', $combined);
             }else{
-                require_once 'warning.php';
+                require_once 'src' . DIRECTORY_SEPARATOR . 'warning.php';
                 exit;
             }
         }else{
@@ -58,7 +58,7 @@ if (isset($_GET['pid'])){
         $zip_name = 'redcap_pdf.zip';
     }
 }else{   
-    require_once 'errors.php';
+    require_once 'src' . DIRECTORY_SEPARATOR . 'errors.php';
     exit;
 }
 require_once $INDEX_DIR . 'src' . DIRECTORY_SEPARATOR . 'get_metadata.php';
@@ -78,10 +78,39 @@ if ($con == null){
 }else{
     $handle = popen($python_path . 'python ' . $SRC_DIR . 'print_form.py ' . $file_name . ' ' . $zip_name . ' ' . $con . ' ' . $config_file . ' 2>&1', 'r');
 }
+
 $content = stream_get_contents($handle);
 if ($content!= null){
-    echo $content;
+
+    require_once 'src' . DIRECTORY_SEPARATOR . 'python_error.php';
+
+    //Write to the error log
+    chdir(APP_PATH_TEMP);
+    $today = getdate();
+    $error_log = 'pdf_error_log.txt';
+    $pid_stmt = 'PID : ' . $pid . "\n";
+    $date_stmt =$today['mon'] . "/" . $today['mday'] . "/" . $today['year']. "  " . $today['hours'] . ":" .$today['minutes'] . ":" . $today['seconds'] . "\n";
+    $separate = "=======================\n";
+    $el = fopen($error_log, 'a+') or die("Can't open file");
+    fwrite($el, $pid_stmt);
+    fwrite($el, $date_stmt);
+    fwrite($el, $separate);
+    fwrite($el, $content);
+    fwrite($el, "\n\n");
+    fclose($el);
+
+    //Cleanup and exit
+    chdir($temp_dir);
+    foreach(scandir(getcwd()) as $file){
+        if(is_dir($file) == false){
+            unlink($file);
+        }
+    }
+    chdir($INDEX_DIR);
+    rmdir($temp_dir);
+    exit;
 }
+
 pclose($handle);
 unlink($file_name);
 

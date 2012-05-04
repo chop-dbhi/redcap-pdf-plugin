@@ -28,6 +28,7 @@ class ArgumentError(Exception):
     '''
     def __init__(self, msg):
         self.msg = msg
+        print msg
 
 class ConstraintError(Exception):
     ''' Error raised when the constraint section is not in the constraint file
@@ -36,6 +37,7 @@ class ConstraintError(Exception):
     def __init__(self, msg, const):
         self.msg = msg
         self.const = const
+        print msg
 
 class PdfForm(object):
     def __init__(self, xml_file, config_file=None):
@@ -296,9 +298,4 @@ def main(argv=None):
     zip_handle.close()
 
 if __name__ == '__main__':
-    try:  
-        main()
-    except ArgumentError:
-        print "Error:1"
-    except ConstraintError:
-        print "Error:2"
+    main()

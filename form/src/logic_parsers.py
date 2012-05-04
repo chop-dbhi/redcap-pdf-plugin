@@ -8,7 +8,6 @@ class BranchingLogicError(Exception):
         self.msg = msg
         self.logic = logic
         print msg
-        print logic
 
 class LogicParser(object):
     def __init__(self):
@@ -103,7 +102,7 @@ class LogicParser(object):
         except:
             e = sys.exc_info()[1]
             print e
-            print sys.exc_info()
-            raise BranchingLogicError("\'%(logic_str)s\' cannot be properly parsed." 
+            raise BranchingLogicError("The branching logic \'%(logic_str)s\' \
+cannot be properly evaluated by the LogicParser.\n"
                 %{'logic_str': logic}, logic)
         return None
