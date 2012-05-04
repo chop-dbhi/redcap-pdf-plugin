@@ -79,6 +79,9 @@ if ($con == null){
     $handle = popen($python_path . 'python ' . $SRC_DIR . 'print_form.py ' . $file_name . ' ' . $zip_name . ' ' . $con . ' ' . $config_file . ' 2>&1', 'r');
 }
 $content = stream_get_contents($handle);
+if ($content!= null){
+    echo $content;
+}
 pclose($handle);
 unlink($file_name);
 

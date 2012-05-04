@@ -539,8 +539,11 @@ class Form(object):
             else:
                 #Find largest choice and base columns off that
                 size_space = sorted_len[0] + self.char_len + size
-     
+        
             num_per_row = floor((self._right - self._left) /(size_space) )
+            if num_per_row == 0:
+                num_per_row = 1
+        
             rows = ceil(num_opts / num_per_row)   
 
             index = 0

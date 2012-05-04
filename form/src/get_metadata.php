@@ -11,7 +11,7 @@ class Metadata {
             foreach ($row as $item => $value)
             {
                 if ($value != ""){
-                    $line .= "<$item><![CDATA[" . html_entity_decode($value, ENT_QUOTES) . "]]></$item>";
+                    $line .= "<$item><![CDATA[" . utf8_encode(html_entity_decode($value)) . "]]></$item>";
                 }
                 else{
                     $line .= "<$item></$item>";
