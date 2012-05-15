@@ -39,6 +39,18 @@ class ConstraintError(Exception):
         self.const = const
         print msg
 
+def clean_html(text):
+    '''Return a string with the html elements removed.
+    
+    Arguments:
+    text -- The text to remove the html tage from.
+    '''
+    br = re.compile('< ?br ?/?>')
+    new_line = br.sub(" <BR> ",text)
+    tags=re.compile('<(?!BR)>')
+    clean =tags.sub(' ', new_line)
+    return clean
+
 class PdfForm(object):
     def __init__(self, xml_file, config_file=None):
         self.tree = etree.parse(xml_file)
@@ -222,7 +234,7 @@ class PdfForm(object):
                     'slider' : RedcapForm.slider_element,
                 }
 
-                field_text = item.findtext('field_label')
+                field_text = clean_html(item.findtext('field_label'))
                 field_type = item.findtext('field_type')
                 field_name = item.findtext('field_name')
                 branching_logic = item.findtext('branching_logic')
@@ -237,7 +249,7 @@ class PdfForm(object):
                         logic_vals = self._get_level(branching_logic)
                         indent_stack = self._indent_ques(logic_vals, field_name)
                     if item.findtext('section_header'):
-                        self.doc.section_name(item.findtext('section_header'))
+                        self.doc.section_name(clean_html(item.findtext('section_header')))
                     if choices != None:
                         if redcap_types.has_key(field_type):
                             redcap_types[field_type](self.doc, field_text, choices)

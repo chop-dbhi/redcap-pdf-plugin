@@ -1,4 +1,5 @@
 import string
+import re
 from math import floor, ceil
 
 from reportlab.rl_config import defaultPageSize
@@ -242,6 +243,8 @@ class Form(object):
         Arguments:
         text -- The string to print to the form.
         '''
+        newline = re.compile("<BR>")
+
         text = text.strip() 
         len_txt = self.canvas.stringWidth(text, self.font, self.font_size)
         if len_txt > self._right - self._left:
@@ -254,15 +257,20 @@ class Form(object):
             line_str = ""
             while len(words) > 0:
                 word = words.pop(0) + ""
-                new_wrd_len = self.canvas.stringWidth(word,self.font,
-                        self.font_size)
-                wrd_len = self.canvas.stringWidth(line_str, self.font,
-                    self.font_size) 
-                if self._x + wrd_len + new_wrd_len > self._right:
+                if newline.match(word):
                     self.text_obj.textOut(line_str)
-                    self.new_line(**kwargs)
+                    self.new_line()
                     line_str = ""
-                line_str+=word + " "
+                else:
+                    new_wrd_len = self.canvas.stringWidth(word,self.font,
+                            self.font_size)
+                    wrd_len = self.canvas.stringWidth(line_str, self.font,
+                        self.font_size) 
+                    if self._x + wrd_len + new_wrd_len > self._right:
+                        self.text_obj.textOut(line_str)
+                        self.new_line(**kwargs)
+                        line_str = ""
+                    line_str+=word + " "
             if not line_str == "": 
                 self.text_obj.textOut(line_str)
                 line_str = line_str.strip()
@@ -274,11 +282,20 @@ class Form(object):
                 if self._x != self._left:
                     self.new_line()
                 self._last_multi = False
-            self.text_obj.textOut(text)
+            lines = newline.split(text)
+            while len(lines) > 1:
+                self.new_line()
+                line = lines.pop()
+                self.text_obj.textOut(line)
+                self.text_obj.setTextOrigin(self._x +
+                    self.canvas.stringWidth(line, self.font, self.font_size), self._y)
+                self._x, self._y = self.text_obj.getCursor()
+            line = lines.pop()
+            self.text_obj.textOut(line)
             self.text_obj.setTextOrigin(self._x +
-                self.canvas.stringWidth(text, self.font, self.font_size), self._y)
+                self.canvas.stringWidth(line, self.font, self.font_size), self._y)
             self._x, self._y = self.text_obj.getCursor()
- 
+
     def form_name(self, name, font_name="Times-BoldItalic", font_size=20):
         '''Add form name to the form.
 
