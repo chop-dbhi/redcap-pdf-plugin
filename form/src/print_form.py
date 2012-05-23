@@ -103,13 +103,13 @@ class PdfForm(object):
         if len(vals) > 1:
             return map(lambda c: c.lstrip(' 0123456789').lstrip(',').strip(' '), vals)
         else:
+            vals = choices.split("|", 2)
             if len(vals) > 1:
                 return vals
             elif len(vals) == 1:
                 one = re.match("\s?1\s?,\s?(.*)",vals[0]);
                 if one:
                     return one.group(1) 
-            vals = choices.split("|", 2)
         return None
 
     def _get_level(self, names):

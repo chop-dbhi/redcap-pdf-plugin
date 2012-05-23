@@ -284,12 +284,12 @@ class Form(object):
                 self._last_multi = False
             lines = newline.split(text)
             while len(lines) > 1:
-                self.new_line()
-                line = lines.pop()
+                line = lines.pop(0)
                 self.text_obj.textOut(line)
                 self.text_obj.setTextOrigin(self._x +
                     self.canvas.stringWidth(line, self.font, self.font_size), self._y)
                 self._x, self._y = self.text_obj.getCursor()
+                self.new_line()
             line = lines.pop()
             self.text_obj.textOut(line)
             self.text_obj.setTextOrigin(self._x +
