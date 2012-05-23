@@ -109,7 +109,7 @@ class PdfForm(object):
             elif len(vals) == 1:
                 one = re.match("\s?1\s?,\s?(.*)",vals[0]);
                 if one:
-                    return one.group(1) 
+                    return [one.group(1)] 
         return None
 
     def _get_level(self, names):
