@@ -48,7 +48,9 @@ def clean_html(text):
     br = re.compile('< ?br ?/?>')
     new_line = br.sub(" <BR> ",text)
     tags=re.compile('<(?!BR)>')
-    clean =tags.sub(' ', new_line)
+    html_clean =tags.sub(' ', new_line)
+    asci_newline = re.compile('\n')
+    clean = asci_newline.sub(" <BR> ", html_clean)
     return clean
 
 class PdfForm(object):
@@ -101,9 +103,13 @@ class PdfForm(object):
         if len(vals) > 1:
             return map(lambda c: c.lstrip(' 0123456789').lstrip(',').strip(' '), vals)
         else:
-            vals = choices.split("|", 2)
             if len(vals) > 1:
                 return vals
+            elif len(vals) == 1:
+                one = re.match("\s?1\s?,\s?(.*)",vals[0]);
+                if one:
+                    return one.group(1) 
+            vals = choices.split("|", 2)
         return None
 
     def _get_level(self, names):
