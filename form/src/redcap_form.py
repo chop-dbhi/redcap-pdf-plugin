@@ -123,5 +123,5 @@ class RedcapForm(Form):
         Form.note_element(self, text, 3)
 
     def sql_element(self, text):
-        Form.text_element(self,question, 2)
+        Form.text_element(self, text, 2)
 
