@@ -67,6 +67,7 @@ class PdfForm(object):
             self.config = ConfigParser()
             self.config.read(config_file)
         self._indent = True
+        self.print_const_name=None
 
     def revert_indent_val(self):
         self._indent = not self._indent
@@ -86,7 +87,10 @@ class PdfForm(object):
         for sec in sections:
             if self.config.has_section(sec):
                 for name, vals in self.config.items(sec):
-                    if name != '__forms':
+                    if name == '__print_name':
+                        if vals == 'True':
+                            self.print_const_name=const_section
+                    elif name != '__forms':
                         self.logic_parser.add_constraint(name, eval(vals))
             else:
                 if sec != 'base':
@@ -197,6 +201,8 @@ class PdfForm(object):
                         self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf")
                     else:
                         self.doc = RedcapForm(item.findtext('form_name')+".pdf")
+                    if self.print_const_name != None:
+                        self.doc.print_const_name(self.print_const_name)
                     self.doc.setup()
                     self.doc.form_name(prop_name)
                     self.cur_form = item.findtext('form_name')
@@ -207,6 +213,8 @@ class PdfForm(object):
                     else:
                         self.doc = RedcapForm(item.findtext('form_name')+".pdf")
                     self.indent_stack = {}
+                    if self.print_const_name != None:
+                        self.doc.print_const_name(self.print_const_name)
                     self.doc.setup()
                     self.doc.form_name(prop_name)
                     self.cur_form = item.findtext('form_name')
