@@ -55,6 +55,7 @@ class Form(object):
         self._start_left = self._left
         
         self._last_multi = False
+        self.form_name_prefix = None
 
         self.header_footer = []
 
@@ -65,6 +66,11 @@ class Form(object):
         self.canvas.line(x1, y2, x2, y2)
         self.canvas.line(x2, y1, x2, y2)
 
+    def print_const_name(self, name=None):
+        if name != None:
+            self.form_name_prefix = name
+            
+    
     def set_font(self, font, font_size=12):
         '''Change the font type and size.
         
@@ -308,6 +314,8 @@ class Form(object):
         font_size -- Number specifying the size of the font to use to render
             the name.
         '''
+        if self.form_name_prefix != None:
+            name = self.form_name_prefix + " - " + name
         self.fm_name = name
         old_ft = self.font
         old_ft_sz = self.font_size
