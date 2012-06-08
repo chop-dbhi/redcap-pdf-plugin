@@ -29,7 +29,7 @@ if (isset($_GET['pid'])){
             if (array_key_exists('base', $forms)){
                 if (array_key_exists('__forms', $forms['base'])){
                         $base_arr = explode(',', str_replace(' ', '', $forms['base']['__forms']));
-                        foreach ($base_arr as $val){
+                        foreach ($base_arr as &$val){
                             $val="'" . $val . "'";
                         }
                 }
