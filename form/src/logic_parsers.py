@@ -1,3 +1,4 @@
+import string
 import re
 import sys
 
@@ -55,15 +56,14 @@ class LogicParser(object):
         '''
       
         space = re.compile('\s+')
-        variable=re.compile('((?:\[[0-9a-z_A-Z]*\])?\[([0-9a-z_A-Z]+)\(?([0-9]*)\)?\]\s?([=><]+)\s?[\'\"]?(-?[\s0-9]*)[\'\"]?)(\s*and|\s*or)?\s*(.*)')
+        variable=re.compile('((?:\[[0-9a-z_A-Z]*\])?\[([0-9a-z_A-Z]+)\(?([0-9]*)\)?\]\s?([=><]+)\s?[\'\"]?(-?[\s0-9]*)[\'\"]?)(\s*[Aa][Nn][Dd]|\s*[Oo][Rr])?\s*(.*)')
         function=re.compile('\s*(([a-zA-Z_0-9]+\([^\)]*\))\s*([=><]*)\s*\'?\"?\s*([0-9]*)\s*\'?\"?\s*)(.*)')
         logic = re.sub(space, ' ', logic)
 
         orig_str = logic
-        
+
         # Evaluate the variables in the expression
         var = variable.search(logic)
-        
         while var != None:
             repl_str = var.group(1)
             name = var.group(2)
@@ -71,7 +71,7 @@ class LogicParser(object):
             val = var.group(5)
             checkbox = var.group(3)
             remaining = var.group(7)
-
+            
             if checkbox != '':
                 new_val = self._get_val(name, op, checkbox, val)
             else:
@@ -95,6 +95,9 @@ class LogicParser(object):
             orig_str = re.sub(re.escape(repl_str), new_val, orig_str)
             func = function.search(remaining)
         try:
+            andor = re.search('(\s[An][Nn][Dd]|\s[Oo][Rr])', orig_str)
+            if andor:
+                orig_str = re.sub(andor.group(1), string.lower(andor.group(1)), orig_str)
             result = eval(orig_str)
             if not result:
                 self.blacklist.append(var_name)
