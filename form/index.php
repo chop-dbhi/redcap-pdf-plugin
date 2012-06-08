@@ -58,6 +58,7 @@ if (isset($_GET['pid'])){
         $zip_name = 'redcap_pdf.zip';
     }
 }else{   
+    rmdir($temp_dir);
     require_once 'src' . DIRECTORY_SEPARATOR . 'errors.php';
     exit;
 }
