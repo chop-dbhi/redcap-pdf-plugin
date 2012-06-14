@@ -135,8 +135,8 @@ class Form(object):
         '''Go to the next page and set header/footer.
 
         Arguments:
-        break_text -- Boolean value; if set to True it add the continued on
-            next page footer.
+        break_text -- Boolean value. If set to True, 'continued on the next
+        page.' is added to the footer.
         '''
         if break_text:
             self._add_continued_footer()

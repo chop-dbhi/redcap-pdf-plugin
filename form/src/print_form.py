@@ -111,7 +111,7 @@ class PdfForm(object):
             if len(vals) > 1:
                 return vals
             elif len(vals) == 1:
-                one = re.match("\s?1\s?,\s?(.*)",vals[0]);
+                one = re.match("\s?[0-9.-]*\s?,\s?(.*)",vals[0]);
                 if one:
                     return [one.group(1)] 
         return None
