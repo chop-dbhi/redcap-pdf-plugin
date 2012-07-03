@@ -30,7 +30,7 @@ class FormCanvas(canvas.Canvas):
                     }
             char_len = self.stringWidth("O", 'Times-Roman', 10)
             x_start = (pg_size[0] - self.stringWidth(txt, 'Times-Roman',10) -
-            char_len * 5)
+            char_len * 4)
             text_obj = self.beginText()
             text_obj.setTextOrigin(x_start, 30.0)
             text_obj.textOut(txt)
@@ -285,7 +285,7 @@ class Form(object):
                 self._x, self._y = self.text_obj.getCursor()
         else:
             if self._last_multi == True:
-                if self._x != self._left:
+                if self._x > self._left:
                     self.new_line()
                 self._last_multi = False
             lines = newline.split(text)
@@ -314,6 +314,13 @@ class Form(object):
         font_size -- Number specifying the size of the font to use to render
             the name.
         '''
+        if self._y + self.spacing * 3 >= self._bottom:
+                self.new_page()
+        elif self._x != self._left:
+                self.new_line()
+        if self._y != self._top:
+           self.new_line()
+
         if self.form_name_prefix != None:
             name = self.form_name_prefix + " - " + name
         self.fm_name = name
@@ -351,17 +358,15 @@ class Form(object):
         old_ft = self.font
         old_ft_sz = self.font_size
         self.set_font(font_name, font_size)
+        
         if self._x != self._left:
-            if self._y + self.spacing * 2 >= self._bottom:
-                self.new_page()
-            else:
-                self.text_obj.setTextOrigin(self._start_left, self._y + self.spacing)
-                self._x, self._y = self.text_obj.getCursor()
-        else:
-            self.text_obj.setTextOrigin(self._start_left, self._y)
-            self._x, self._y = self.text_obj.getCursor()
+            self.new_line()
+        
         if self._y + self.spacing * 2 >= self._bottom:
             self.new_page()
+        
+        self.text_obj.setTextOrigin(self._start_left, self._y)
+        self._x, self._y = self.text_obj.getCursor()
         self.print_text(name)
         self.new_line() 
         self.text_obj.setTextOrigin(self._start_left, self._y - self.spacing/1.5)

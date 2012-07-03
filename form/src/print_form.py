@@ -154,11 +154,13 @@ class PdfForm(object):
             if len(logic) > 0:
                 self.indent_stack[cur_field] = 1
                 self.doc.start_indent()
+                self.all_forms.start_indent()
         else:
             top = sorted(self.indent_stack.values()).pop()
             if len(logic) == 0:
                 for k in self.indent_stack.keys():
                     self.doc.stop_indent()
+                    self.all_forms.stop_indent()
                 self.indent_stack={}
                 return {}
             high = 0
@@ -171,11 +173,13 @@ class PdfForm(object):
                 for k in self.indent_stack.keys():
                     if num > 0:
                         self.doc.stop_indent()
+                        self.all_forms.stop_indent()
                     del self.indent_stack[k]
                     num+=1
                 self.indent_stack[cur_field] = 1
             elif high == top:
                 self.doc.start_indent()
+                self.all_forms.start_indent()
                 self.indent_stack[cur_field] = top + 1
             else:
                 num = 0
@@ -184,13 +188,23 @@ class PdfForm(object):
                         del self.indent_stack[k]
                         if num > 0:
                             self.doc.stop_indent()
+                            self.all_forms.stop_indent()
                         num+=1
                 self.indent_stack[cur_field] = high + 1
+   
+    def __reset_indent(self):
+        if self.indent_stack != {}:
+            top = sorted(self.indent_stack.values()).pop()
+            for val in range(top):
+                self.all_forms.stop_indent()
 
     def process(self,const):
         ''' Parse and create the RedcapForm associated with the REDcap XML data
         dictionary.
         '''
+        self.all_forms = RedcapForm('ALL.pdf')
+        self.all_forms.setup()
+
         for item in self.tree.iter('item'):
             form_name = item.findtext('form_name')
             if self.to_print == [] or form_name in self.to_print:
@@ -205,9 +219,12 @@ class PdfForm(object):
                         self.doc.print_const_name(self.print_const_name)
                     self.doc.setup()
                     self.doc.form_name(prop_name)
+                    self.all_forms.form_name(prop_name)
                     self.cur_form = item.findtext('form_name')
+
                 elif not self.cur_form == item.findtext('form_name'):
                     self.doc.render()
+                    self.__reset_indent()
                     if const != None:
                         self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf")
                     else:
@@ -217,6 +234,8 @@ class PdfForm(object):
                         self.doc.print_const_name(self.print_const_name)
                     self.doc.setup()
                     self.doc.form_name(prop_name)
+                    self.all_forms.form_name(prop_name)
+                    
                     self.cur_form = item.findtext('form_name')
 
                 redcap_types = {
@@ -264,17 +283,23 @@ class PdfForm(object):
                         indent_stack = self._indent_ques(logic_vals, field_name)
                     if item.findtext('section_header'):
                         self.doc.section_name(clean_html(item.findtext('section_header')))
+                        self.all_forms.section_name(clean_html(item.findtext('section_header')))
                     if choices != None:
                         if redcap_types.has_key(field_type):
                             redcap_types[field_type](self.doc, field_text, choices)
+                            redcap_types[field_type](self.all_forms, field_text, choices)
                         else:
                             redcap_types['text'](self.doc, field_text)
+                            redcap_types['text'](self.all_forms, field_text)
                     else:
                         if redcap_types.has_key(field_type):
                             redcap_types[field_type](self.doc, field_text)
+                            redcap_types[field_type](self.all_forms, field_text)
                         else:
                             redcap_types['text'](self.doc, field_text)
-        return self.doc.render()
+                            redcap_types['text'](self.all_forms, field_text)
+        self.all_forms.render()
+        self.doc.render()
 
 def main(argv=None):
     if argv is None:
@@ -319,6 +344,7 @@ def main(argv=None):
     form.process(const_name)
 
     zip_handle = zipfile.ZipFile(zip_name, "w")
+
     for name in glob("*.pdf"):
         zip_handle.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
     zip_handle.close()
