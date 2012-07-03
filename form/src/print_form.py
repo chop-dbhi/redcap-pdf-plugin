@@ -57,6 +57,7 @@ class PdfForm(object):
     def __init__(self, xml_file, config_file=None):
         self.tree = etree.parse(xml_file)
         self.cur_form = None
+        self.multiline=True
 
         self.doc = None
         self.indent_stack = {}
@@ -80,6 +81,7 @@ class PdfForm(object):
         const_section -- The section in the config_file to use along with
             the base seciton
         '''
+        multiline=True
         if not self.config:
             raise ValueError("self.config is %(self.config)s: Please set the config file before adding constraint." %({'config': self.config, 
                                                 }))
@@ -90,11 +92,14 @@ class PdfForm(object):
                     if name == '__print_name':
                         if vals == 'True':
                             self.print_const_name=const_section
+                    elif name == '__multiline':
+                        self.multiline = eval(vals)
                     elif name != '__forms':
                         self.logic_parser.add_constraint(name, eval(vals))
             else:
                 if sec != 'base':
                     raise ConstraintError('%(sec)s is not in the constraint file.', sec);
+
 
     def _get_choices(self, choices):
         ''' Return a list of valid choices for the current question.
@@ -202,7 +207,7 @@ class PdfForm(object):
         ''' Parse and create the RedcapForm associated with the REDcap XML data
         dictionary.
         '''
-        self.all_forms = RedcapForm('ALL.pdf')
+        self.all_forms = RedcapForm('ALL.pdf', self.multiline)
         self.all_forms.setup()
 
         for item in self.tree.iter('item'):
@@ -212,9 +217,11 @@ class PdfForm(object):
                 prop_name = string.capwords(name)
                 if self.cur_form == None:
                     if const != None:
-                        self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf")
+                        self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf",
+                                self.multiline)
                     else:
-                        self.doc = RedcapForm(item.findtext('form_name')+".pdf")
+                        self.doc = RedcapForm(item.findtext('form_name')+".pdf",
+                                self.multiline)
                     if self.print_const_name != None:
                         self.doc.print_const_name(self.print_const_name)
                     self.doc.setup()
@@ -226,9 +233,11 @@ class PdfForm(object):
                     self.doc.render()
                     self.__reset_indent()
                     if const != None:
-                        self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf")
+                        self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf",
+                                self.multiline)
                     else:
-                        self.doc = RedcapForm(item.findtext('form_name')+".pdf")
+                        self.doc = RedcapForm(item.findtext('form_name')+".pdf",
+                                self.multiline)
                     self.indent_stack = {}
                     if self.print_const_name != None:
                         self.doc.print_const_name(self.print_const_name)

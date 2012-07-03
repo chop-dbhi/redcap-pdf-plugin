@@ -3,8 +3,11 @@ from datetime import date
 
 class RedcapForm(Form):
     def __init__(self, *args, **kwargs):
-        Form.__init__(self,*args, **kwargs)
+        self.multiline = args[1]
+        name= args[0]
+        Form.__init__(self,name, **kwargs)
         self._header_box = []
+        self.headerflag=False
 
     def setup(self):
         self.add_to_header_box("Clinician Name", RedcapForm.text_element,
@@ -34,13 +37,14 @@ class RedcapForm(Form):
         old_fnt_size = self.font_size
         self.text_obj.setTextOrigin(self._left, 20 + self.spacing)
         self._x, self._y = self.text_obj.getCursor()
-
+        self.headerflag=True
         for f in self._header_box:
             self.set_font(f[2][0], f[2][1])
             if f[3]:
                 f[1](self,f[0],f[3])
             else:
                 f[1](self,f[0])
+        self.headerflag=False
         x, y = self.text_obj.getCursor()
         Form._draw_box(self,self._left-5, 20, self._right+5 , y+ self.spacing/2.0)
         self._left = lft
@@ -49,6 +53,12 @@ class RedcapForm(Form):
         self._x, self._y = self.text_obj.getCursor()
         self.set_font(old_fnt, old_fnt_size)
     
+    def multiline_check(self):
+        if not self.headerflag:
+            if not self.multiline:
+                if self._x != self._left:
+                    self.new_line()
+
     def no_print(self, question):
         pass
 
@@ -64,64 +74,94 @@ class RedcapForm(Form):
 
     def integer_element(self, question):
         Form.text_element(self, question, .5)
+        self.multiline_check() 
 
     def number_element(self, question):
         Form.text_element(self, question, 1)
+        self.multiline_check() 
     
     def text_element(self, question):
         Form.text_element(self, question, 2)
+        self.multiline_check() 
+    
+    def date_element(self, question):
+        Form.date_element(self, question)
+        self.multiline_check() 
     
     def date_ymd(self, question):
         Form.date_element(self, question, 'yyyymmdd')
+        self.multiline_check() 
 
     def date_dmy(self, question):
         Form.date_element(self, question, 'ddmmyyyy')
+        self.multiline_check() 
     
     def time(self, question):
         Form.time_element(self, question, 'hhmm')
+        self.multiline_check() 
 
     def time_mm_ss(self, question):
         Form.time_element(self, question, 'mmss')
+        self.multiline_check() 
 
     def datetime_mdy(self, question):
         Form.date_element(self, question, 'mmddyyyy')
         Form.time_element(self, '', 'hhmm')
+        self.multiline_check() 
 
     def datetime_dmy(self, question):
         Form.date_element(self, question, 'ddmmyyyy')
         Form.time_element(self, '', 'hhmm')
+        self.multiline_check() 
 
     def datetime_ymd(self, question):
         Form.date_element(self, question, 'yyyymmdd')
         Form.time_element(self, '', 'hhmm')
+        self.multiline_check() 
 
     def datetime_sec_dmy(self, question):
         Form.date_element(self, question, 'ddmmyyyy')
         Form.time_element(self, '', 'hhmmss') 
+        self.multiline_check() 
 
     def datetime_sec_mdy(self, question):
         Form.date_element(self, question, 'mmddyyyy')
         Form.time_element(self, '', 'hhmmss') 
+        self.multiline_check() 
 
     def datetime_sec_ymd(self, question):
         Form.date_element(self, question, 'yyyymmdd')
         Form.time_element(self, '', 'hhmmss') 
+        self.multiline_check() 
 
     def descriptive_element(self, text):
         Form.text_element(self, text, 0)
+        self.multiline_check() 
 
     def truefalse_element(self, text):
         Form.radio_element(self, text, ['True','False']) 
+        self.multiline_check() 
     
     def yesno_element(self, text):
         Form.radio_element(self, text, ['Yes','No']) 
+        self.multiline_check() 
+
+    def radio_element(self, text, choices):
+        Form.radio_element(self, text, choices)
+        self.multiline_check() 
+
+    def check_box_element(self, text, choices):
+        Form.check_box_element(self, text, choices)
+        self.multiline_check() 
 
     def dropdown_element(self, text, choices):
         Form.radio_element(self, text, choices)
+        self.multiline_check() 
 
     def note_element(self, text):
         Form.note_element(self, text, 3)
+        self.multiline_check() 
 
     def sql_element(self, text):
         Form.text_element(self, text, 2)
-
+        self.multiline_check() 
