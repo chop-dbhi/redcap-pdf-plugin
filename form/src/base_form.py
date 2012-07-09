@@ -131,6 +131,12 @@ class Form(object):
         self.set_footer("(Continued on next page.)", "right", ("Times-Italic",
         12))
 
+    
+    def is_new_page(self):
+        if self._top + self.font_size == self._y:
+            return True
+        return False
+
     def new_page(self, break_text=False):
         '''Go to the next page and set header/footer.
 
@@ -140,16 +146,18 @@ class Form(object):
         '''
         if break_text:
             self._add_continued_footer()
-        self.canvas.drawText(self.text_obj)
-        self.canvas.showPage()
-        self.text_obj = self.canvas.beginText()
-        self.set_font(self.font, self.font_size)
-        self.text_obj.setTextOrigin(self._left, self._top + self.font_size)
-        self._x, self._y = self.text_obj.getCursor()
+    
+        if not self.is_new_page():
+            self.canvas.drawText(self.text_obj)
+            self.canvas.showPage()
+            self.text_obj = self.canvas.beginText()
+            self.set_font(self.font, self.font_size)
+            self.text_obj.setTextOrigin(self._left, self._top + self.font_size)
+            self._x, self._y = self.text_obj.getCursor()
         
-        for x in self.header_footer:
-            self._set_header_footer(x.get('text', None), x.get('location',None),
-                x.get('headfoot', None), x.get("font"))
+            for x in self.header_footer:
+                self._set_header_footer(x.get('text', None), x.get('location',None),
+                    x.get('headfoot', None), x.get("font"))
 
     def new_line(self, **kwargs):
         '''Move the cursor to beginning of the next line.

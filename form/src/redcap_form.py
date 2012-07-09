@@ -63,9 +63,10 @@ class RedcapForm(Form):
         pass
 
     def new_page(self, break_text=False):
-        if len(self._header_box):
-            self.print_header_box()
-        Form.new_page(self,break_text)
+        if not self.is_new_page():
+            if len(self._header_box):
+                self.print_header_box()
+            Form.new_page(self,break_text)
 
     def render(self):
         if len(self._header_box):

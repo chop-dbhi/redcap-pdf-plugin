@@ -246,7 +246,7 @@ class PdfForm(object):
                         self.doc.print_const_name(self.print_const_name)
                     self.doc.setup()
                     self.doc.form_name(prop_name)
-                    if not self.all_same_page:
+                    if not self.all_same_page: 
                         self.all_forms.new_page()
                     self.all_forms.form_name(prop_name)
                     
