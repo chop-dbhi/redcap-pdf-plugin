@@ -58,6 +58,7 @@ class PdfForm(object):
         self.tree = etree.parse(xml_file)
         self.cur_form = None
         self.multiline=True
+        self.all_same_page=False
 
         self.doc = None
         self.indent_stack = {}
@@ -94,6 +95,8 @@ class PdfForm(object):
                             self.print_const_name=const_section
                     elif name == '__multiline':
                         self.multiline = eval(vals)
+                    elif name == '__all_same_page':
+                        self.all_same_page = eval(vals)
                     elif name != '__forms':
                         self.logic_parser.add_constraint(name, eval(vals))
             else:
@@ -243,6 +246,8 @@ class PdfForm(object):
                         self.doc.print_const_name(self.print_const_name)
                     self.doc.setup()
                     self.doc.form_name(prop_name)
+                    if not self.all_same_page:
+                        self.all_forms.new_page()
                     self.all_forms.form_name(prop_name)
                     
                     self.cur_form = item.findtext('form_name')
