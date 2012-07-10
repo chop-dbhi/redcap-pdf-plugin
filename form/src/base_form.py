@@ -249,6 +249,36 @@ class Form(object):
                                        'headfoot': 'footer',
                                        'font':  font,
                                      })
+    def _print(self, text, **kwargs):
+        newline = re.compile("<BR>")
+        words = text.split()
+        len_words = map(lambda wrd: self.canvas.stringWidth(wrd, self.font,
+            self.font_size), words)
+        line = 0
+        line_str = ""
+        while len(words) > 0:
+            word = words.pop(0) + ""
+            if newline.match(word):
+                self.text_obj.textOut(line_str)
+                self.new_line()
+                line_str = ""
+            else:
+                new_wrd_len = self.canvas.stringWidth(word,self.font,
+                        self.font_size)
+                wrd_len = self.canvas.stringWidth(line_str, self.font,
+                    self.font_size) 
+                if self._x + wrd_len + new_wrd_len > self._right:
+                    self.text_obj.textOut(line_str)
+                    self.new_line(**kwargs)
+                    line_str = ""
+                line_str+=word + " "
+        if not line_str == "": 
+            self.text_obj.textOut(line_str)
+            line_str = line_str.strip()
+            self.text_obj.setTextOrigin(self._x +
+                self.canvas.stringWidth(line_str, self.font, self.font_size), self._y)
+            self._x, self._y = self.text_obj.getCursor()
+
 
     def print_text(self, text, **kwargs):
         '''Print the text to the current cursor(x,y) position, making sure 
@@ -262,36 +292,12 @@ class Form(object):
         text = text.strip() 
         len_txt = self.canvas.stringWidth(text, self.font, self.font_size)
         if len_txt > self._right - self._left:
+            #Text won't fit on one line, break up as needed
             if not self._x == self._left:
                 self.new_line(**kwargs)
-            words = text.split()
-            len_words = map(lambda wrd: self.canvas.stringWidth(wrd, self.font,
-                self.font_size), words)
-            line = 0
-            line_str = ""
-            while len(words) > 0:
-                word = words.pop(0) + ""
-                if newline.match(word):
-                    self.text_obj.textOut(line_str)
-                    self.new_line()
-                    line_str = ""
-                else:
-                    new_wrd_len = self.canvas.stringWidth(word,self.font,
-                            self.font_size)
-                    wrd_len = self.canvas.stringWidth(line_str, self.font,
-                        self.font_size) 
-                    if self._x + wrd_len + new_wrd_len > self._right:
-                        self.text_obj.textOut(line_str)
-                        self.new_line(**kwargs)
-                        line_str = ""
-                    line_str+=word + " "
-            if not line_str == "": 
-                self.text_obj.textOut(line_str)
-                line_str = line_str.strip()
-                self.text_obj.setTextOrigin(self._x +
-                    self.canvas.stringWidth(line_str, self.font, self.font_size), self._y)
-                self._x, self._y = self.text_obj.getCursor()
+            self._print(text)
         else:
+            #Text will fit on line so only break where there is a newline
             if self._last_multi == True:
                 if self._x > self._left:
                     self.new_line()
@@ -590,8 +596,10 @@ class Form(object):
             for n in range(int(rows)):
                 for m in range(int(num_per_row)):
                     shape_callback(self,size)
-                    self.text_obj.textOut(choices[index])
-                    self.text_obj.setTextOrigin(self._x + size_space - size, self._y)
+                    old_x, old_y = self.text_obj.getCursor()
+                    self._print(choices[index])
+                    self.text_obj.setTextOrigin(old_x + size_space - size,
+                            self._y)
                     self._x, self._y = self.text_obj.getCursor()
                     index += 1
                     if index > num_opts - 1:
