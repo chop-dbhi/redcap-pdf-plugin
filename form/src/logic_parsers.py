@@ -56,8 +56,10 @@ class LogicParser(object):
         '''
       
         space = re.compile('\s+')
-        variable=re.compile('((?:\[[0-9a-z_A-Z]*\])?\[([0-9a-z_A-Z]+)\(?([0-9]*)\)?\]\s?([=><]+)\s?[\'\"]?(-?[\s0-9]*)[\'\"]?)(\s*[Aa][Nn][Dd]|\s*[Oo][Rr])?\s*(.*)')
-        function=re.compile('\s*(([a-zA-Z_0-9]+\([^\)]*\))\s*([=><]*)\s*\'?\"?\s*([0-9]*)\s*\'?\"?\s*)(.*)')
+        variable=re.compile('((?:\[[0-9a-z_]*\])?\[([0-9a-z_]+)\(?([0-9]*)\)?\]\s?([=><]+)\s?[\'\"]?(-?[\s0-9]*)[\'\"]?)(\s*and|\s*or)?\s*(.*)',
+                flags=re.IGNORECASE)
+        function=re.compile('\s*(([a-z_0-9]+\([^\)]*\))\s*([=><]*)\s*\'?\"?\s*([0-9]*)\s*\'?\"?\s*)(.*)',
+                flags=re.IGNORECASE)
         logic = re.sub(space, ' ', logic)
 
         orig_str = logic
@@ -95,7 +97,8 @@ class LogicParser(object):
             orig_str = re.sub(re.escape(repl_str), new_val, orig_str)
             func = function.search(remaining)
         try:
-            andor = re.search('(\s[An][Nn][Dd]|\s[Oo][Rr])', orig_str)
+            andor = re.search('(\sand|\sor)', orig_str,
+                    flags=re.IGNORECASE)
             if andor:
                 orig_str = re.sub(andor.group(1), string.lower(andor.group(1)), orig_str)
             result = eval(orig_str)

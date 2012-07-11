@@ -43,7 +43,7 @@ def clean_html(text):
     '''Return a string with the html elements removed.
     
     Arguments:
-    text -- The text to remove the html tage from.
+    text -- The text to remove html tags from.
     '''
     br = re.compile('< ?br ?/?>')
     new_line = br.sub(" <BR> ",text)
