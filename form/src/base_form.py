@@ -491,22 +491,8 @@ class Form(object):
             colon will be placed between different letters.
         '''
         self._box_element(text, time_format, Form._time_space)
-       
-    def text_element(self, text, line_len = 1):
-        '''Add a text element to the form.
-
-        Arguments:
-        text -- The text to render with the text line.
-        line_len -- Number specifying the length of the blank line in inches. 
-        '''
-        len_ques = self.canvas.stringWidth(text, self.font, self.font_size)
-        line = line_len * inch
-        self.canvas.setLineWidth(1)
-        if self._x != self._left:
-            if self._x + len_ques + line + self.char_len > self._right:
-                self.new_line()
-        
-        self.print_text(text)
+      
+    def print_text_line(self, line):
         self.canvas.setLineWidth(.5)
         self._x, self._y = self.text_obj.getCursor()
         if self._x + line > self._right:
@@ -530,7 +516,50 @@ class Form(object):
             self.text_obj.setTextOrigin(self._x + line + self.char_len,
                 self._y)
             self._x, self._y = self.text_obj.getCursor()
+
+
+    def text_element(self, text, line_len = 1):
+        '''Add a text element to the form.
+
+        Arguments:
+        text -- The text to render with the text line.
+        line_len -- Number specifying the length of the blank line in inches. 
+        '''
+        len_ques = self.canvas.stringWidth(text, self.font, self.font_size)
+        line = line_len * inch
+        self.canvas.setLineWidth(1)
+        if self._x != self._left:
+            if self._x + len_ques + line + self.char_len > self._right:
+                self.new_line()
         
+        self.print_text(text)
+        self.print_text_line(line)
+        '''
+        self.canvas.setLineWidth(.5)
+        self._x, self._y = self.text_obj.getCursor()
+        if self._x + line > self._right:
+            if line > self._right - self._left:
+                while line > 0:
+                    if line + self._x > self._right:
+                        self.canvas.line(self._x, self._y, self._right, self._y)
+                        self.new_line()
+                        line = line - (self._right-self._x)
+                    else:
+                        self.canvas.line(self._x , self._y, self._x + line,
+                            self._y)
+                        self.new_line()
+                        line = 0
+            else:
+                self.new_line()
+                self.canvas.line(self._x, self._y, self._x + line, self._y)
+                self.new_line()
+        else:
+            self.canvas.line(self._x, self._y, self._x + line, self._y)
+            self.text_obj.setTextOrigin(self._x + line + self.char_len,
+                self._y)
+            self._x, self._y = self.text_obj.getCursor()
+        '''
+
     def _draw_radio_button(self, size=12):
         radius = size / 3
         self.canvas.setLineWidth(.5)

@@ -268,7 +268,7 @@ class PdfForm(object):
                     'descriptive': RedcapForm.descriptive_element,
                     'sql': RedcapForm.sql_element,
                     'radio': RedcapForm.radio_element,
-                    'calc': RedcapForm.number_element,
+                    'calc': RedcapForm.calculated_element,
                     'file' : RedcapForm.no_print,
                     'time' : RedcapForm.time,
                     'time_mm_ss' : RedcapForm.time_mm_ss,

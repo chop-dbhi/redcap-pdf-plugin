@@ -166,3 +166,23 @@ class RedcapForm(Form):
     def sql_element(self, text):
         Form.text_element(self, text, 2)
         self.multiline_check() 
+    
+    def print_grey(self, line, text):
+        self.canvas.setFillGray(0.90)
+        self.canvas.drawString(self._x + self.char_len/2.0  , self._y - self.char_len / 3.0, text)
+        self.canvas.setFillGray(0.0)
+
+    def print_grey_txt_field(self,text, grey_txt):
+        len_ques = self.canvas.stringWidth(text, self.font, self.font_size)
+        line = self.canvas.stringWidth(grey_txt, self.font, self.font_size) + self.char_len * 2.0
+        self.canvas.setLineWidth(1)
+        if self._x != self._left:
+            if self._x + len_ques + line + self.char_len > self._right:
+                self.new_line()
+
+        self.print_text(text)
+        self.print_grey(line, grey_txt)
+        self.print_text_line(line)
+
+    def calculated_element(self, text):
+        self.print_grey_txt_field(text, 'CALCULATED')
