@@ -249,6 +249,13 @@ class Form(object):
                                        'headfoot': 'footer',
                                        'font':  font,
                                      })
+
+    def toggle_bold(self):
+        if self.font == 'Times-Roman':
+            self.set_font('Times-Bold',12)
+        elif self.font == 'Times-Bold':
+            self.set_font('Times-Roman', 12)
+    
     def _print(self, text, **kwargs):
         newline = re.compile("<BR>")
         words = text.split()
@@ -258,20 +265,27 @@ class Form(object):
         line_str = ""
         while len(words) > 0:
             word = words.pop(0) + ""
-            if newline.match(word):
+            if "[[B]]" in word:
                 self.text_obj.textOut(line_str)
-                self.new_line()
+                self.text_obj.setTextOrigin(self._x + self.canvas.stringWidth(line_str, self.font, self.font_size), self._y)
+                self._x, self._y = self.text_obj.getCursor()
                 line_str = ""
+                self.toggle_bold()
             else:
-                new_wrd_len = self.canvas.stringWidth(word,self.font,
-                        self.font_size)
-                wrd_len = self.canvas.stringWidth(line_str, self.font,
-                    self.font_size) 
-                if self._x + wrd_len + new_wrd_len > self._right:
+                if newline.match(word):
                     self.text_obj.textOut(line_str)
-                    self.new_line(**kwargs)
+                    self.new_line()
                     line_str = ""
-                line_str+=word + " "
+                else:
+                    new_wrd_len = self.canvas.stringWidth(word,self.font,
+                            self.font_size)
+                    wrd_len = self.canvas.stringWidth(line_str, self.font,
+                        self.font_size) 
+                    if self._x + wrd_len + new_wrd_len > self._right:
+                        self.text_obj.textOut(line_str)
+                        self.new_line(**kwargs)
+                        line_str = ""
+                    line_str+=word + " "
         if not line_str == "": 
             self.text_obj.textOut(line_str)
             line_str = line_str.strip()
@@ -305,16 +319,21 @@ class Form(object):
             lines = newline.split(text)
             while len(lines) > 1:
                 line = lines.pop(0)
-                self.text_obj.textOut(line)
-                self.text_obj.setTextOrigin(self._x +
-                    self.canvas.stringWidth(line, self.font, self.font_size), self._y)
-                self._x, self._y = self.text_obj.getCursor()
-                self.new_line()
+                if "[[B]]" in line:
+                    self._print(line)
+                else:
+                    self.text_obj.textOut(line)
+                    self.text_obj.setTextOrigin(self._x +
+                        self.canvas.stringWidth(line, self.font, self.font_size), self._y)
+                    self._x, self._y = self.text_obj.getCursor()
+                    self.new_line()
             line = lines.pop()
-            self.text_obj.textOut(line)
-            self.text_obj.setTextOrigin(self._x +
-                self.canvas.stringWidth(line, self.font, self.font_size), self._y)
-            self._x, self._y = self.text_obj.getCursor()
+            if "[[B]]" in line:
+                self._print(line)
+            else:
+                self.text_obj.textOut(line)
+                self.text_obj.setTextOrigin(self._x + self.canvas.stringWidth(line, self.font, self.font_size), self._y)
+                self._x, self._y = self.text_obj.getCursor()
 
     def form_name(self, name, font_name="Times-BoldItalic", font_size=20):
         '''Add form name to the form.

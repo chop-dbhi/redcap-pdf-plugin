@@ -46,12 +46,14 @@ def clean_html(text):
     text -- The text to remove html tags from.
     '''
     br = re.compile('< ?br ?/?>')
-    new_line = br.sub(" <BR> ",text)
-    tags=re.compile('<(?!BR)>')
-    html_clean =tags.sub(' ', new_line)
+    text = br.sub(" <BR> ",text)
     asci_newline = re.compile('\n')
-    clean = asci_newline.sub(" <BR> ", html_clean)
-    return clean
+    text = asci_newline.sub(" <BR> ", text)
+    bold = re.compile('</? ?[bB] ?>')
+    text = bold.sub(' [[B]] ', text)
+    tags=re.compile('<\s?/?[\sa-zA-Z=\'\"#0-9]*>')
+    text = tags.sub(' ', text)
+    return text
 
 class PdfForm(object):
     def __init__(self, xml_file, config_file=None):
