@@ -60,6 +60,7 @@ class PdfForm(object):
         self.tree = etree.parse(xml_file)
         self.cur_form = None
         self.multiline=True
+        self.header_box='box'
         self.all_same_page=False
 
         self.doc = None
@@ -99,6 +100,8 @@ class PdfForm(object):
                         self.multiline = eval(vals)
                     elif name == '__all_same_page':
                         self.all_same_page = eval(vals)
+                    elif name == '__header_box':
+                        self.header_box = vals
                     elif name != '__forms':
                         self.logic_parser.add_constraint(name, eval(vals))
             else:
@@ -212,7 +215,7 @@ class PdfForm(object):
         ''' Parse and create the RedcapForm associated with the REDcap XML data
         dictionary.
         '''
-        self.all_forms = RedcapForm('ALL.pdf', self.multiline)
+        self.all_forms = RedcapForm('ALL.pdf', self.multiline, self.header_box)
         self.all_forms.setup()
 
         for item in self.tree.iter('item'):
@@ -223,12 +226,13 @@ class PdfForm(object):
                 if self.cur_form == None:
                     if const != None:
                         self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf",
-                                self.multiline)
+                                self.multiline, self.header_box)
                     else:
                         self.doc = RedcapForm(item.findtext('form_name')+".pdf",
-                                self.multiline)
+                                self.multiline, self.header_box)
                     if self.print_const_name != None:
                         self.doc.print_const_name(self.print_const_name)
+                        self.all_forms.print_const_name(self.print_const_name)
                     self.doc.setup()
                     self.doc.form_name(prop_name)
                     self.all_forms.form_name(prop_name)
@@ -239,16 +243,19 @@ class PdfForm(object):
                     self.__reset_indent()
                     if const != None:
                         self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf",
-                                self.multiline)
+                                self.multiline, self.header_box)
                     else:
                         self.doc = RedcapForm(item.findtext('form_name')+".pdf",
-                                self.multiline)
+                                self.multiline, self.header_box)
                     self.indent_stack = {}
                     if self.print_const_name != None:
                         self.doc.print_const_name(self.print_const_name)
+                        self.all_forms.print_const_name(self.print_const_name)
                     self.doc.setup()
                     self.doc.form_name(prop_name)
                     if not self.all_same_page: 
+                        if self.all_forms.form_name_current:
+                            self.all_forms.remove_header_footer(self.all_forms.form_name_current)
                         self.all_forms.new_page()
                     self.all_forms.form_name(prop_name)
                     

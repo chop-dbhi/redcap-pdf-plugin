@@ -3,11 +3,13 @@ from datetime import date
 
 class RedcapForm(Form):
     def __init__(self, *args, **kwargs):
+        self.header_box = args[2].lower()
         self.multiline = args[1]
         name= args[0]
         Form.__init__(self,name, **kwargs)
         self._header_box = []
         self.headerflag=False
+        self.form_name_current=None
 
     def setup(self):
         self.add_to_header_box("Clinician Name", RedcapForm.text_element,
@@ -16,7 +18,10 @@ class RedcapForm(Form):
             ('Times-Roman', 11))
         self.add_to_header_box("Date", RedcapForm.date_element,
             ('Times-Roman', 11))
-        self.set_border(1.0, 0.5, 0.5, 0.5)
+        if self.header_box == 'box':
+            self.set_border(1.0, 0.5, 0.5, 0.5)
+        else:
+            self.set_border(0.5, 0.5, 0.5, 0.5)
         self.set_header("Confidential", 'left',('Times-Italic', 12), True)
         cur_date = date.today();
         self.set_footer("Form generated on " + str(cur_date.month) + "/" +
@@ -28,31 +33,40 @@ class RedcapForm(Form):
         self._header_box.append((element, callback,font, choices))
 
     def print_header_box(self):
-        lft = self._left
-        rt = self._right
-        self._left = 275
-        self._right = 540
-        old_x, old_y = self.text_obj.getCursor()
-        old_fnt = self.font
-        old_fnt_size = self.font_size
-        self.text_obj.setTextOrigin(self._left, 20 + self.spacing)
-        self._x, self._y = self.text_obj.getCursor()
-        self.headerflag=True
-        for f in self._header_box:
-            self.set_font(f[2][0], f[2][1])
-            if f[3]:
-                f[1](self,f[0],f[3])
-            else:
-                f[1](self,f[0])
-        self.headerflag=False
-        x, y = self.text_obj.getCursor()
-        Form._draw_box(self,self._left-5, 20, self._right+5 , y+ self.spacing/2.0)
-        self._left = lft
-        self._right = rt
-        self.text_obj.setTextOrigin(old_x, old_y)
-        self._x, self._y = self.text_obj.getCursor()
-        self.set_font(old_fnt, old_fnt_size)
+        if self.header_box == 'box':
+            lft = self._left
+            rt = self._right
+            self._left = 275
+            self._right = 540
+            old_x, old_y = self.text_obj.getCursor()
+            old_fnt = self.font
+            old_fnt_size = self.font_size
+            self.text_obj.setTextOrigin(self._left, 20 + self.spacing)
+            self._x, self._y = self.text_obj.getCursor()
+            self.headerflag=True
+            for f in self._header_box:
+                self.set_font(f[2][0], f[2][1])
+                if f[3]:
+                    f[1](self,f[0],f[3])
+                else:
+                    f[1](self,f[0])
+            self.headerflag=False
+            x, y = self.text_obj.getCursor()
+            Form._draw_box(self,self._left-5, 20, self._right+5 , y+ self.spacing/2.0)
+            self._left = lft
+            self._right = rt
+            self.text_obj.setTextOrigin(old_x, self._y + self.spacing)
+            self._x, self._y = self.text_obj.getCursor()
+            self.set_font(old_fnt, old_fnt_size)
     
+    def form_name(self, name, font_name="Times-BoldItalic", font_size=20):
+        Form.form_name(self, name, font_name, font_size)
+        if self.header_box == 'form_name':
+            if self.form_name_current is not None:
+                self.remove_header_footer(self.form_name_current)
+            self.set_header(self.fm_name, 'center',('Times-Bold', 12), True)
+            self.form_name_current = self.fm_name
+
     def multiline_check(self):
         if not self.headerflag:
             if not self.multiline:

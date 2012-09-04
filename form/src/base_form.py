@@ -176,7 +176,7 @@ class Form(object):
         elif location == 'center':
             len_text = self.canvas.stringWidth(text_prt, self.font,
                 self.font_size)
-            x_start = (self.page_width - len_text) / 2.0
+            x_start = (self._page_width - len_text) / 2.0
         elif location == 'right':
             len_text = self.canvas.stringWidth(text_prt, self.font,
                 self.font_size)
@@ -210,9 +210,9 @@ class Form(object):
         text -- The string to be removed from the header or footer.
         '''
         for x in self.header_footer:
-            if x.has_key(text):
-                self.header.remove(x)
-    
+            if x['text'] is text:
+                self.header_footer.remove(x)
+
     def set_header(self, text, location, font, all_pg=False):
         '''Specify a header for the Document
         
