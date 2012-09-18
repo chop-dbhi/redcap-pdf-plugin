@@ -34,10 +34,28 @@ class LogicParser(object):
             return True
         return True
 
+    
+    def has_constraint(self, var_name):
+        ''' Returns True if the form is constrained on the variable.
+    
+        Arguments:
+        var_name -- The name of the variable to check for.
+        '''
+        return self.const.has_key(var_name)
+
+    def get_const_vals(self, var_name):
+        ''' Returns the values a variable name is constrained on. Returns and
+        empty array if it has no constraints.
+        '''
+
+        if self.const.has_key(var_name):
+            return self.const[var_name]
+        return []
+
     def add_constraint(self, var, vals):
         ''' Adds a new constraint to the LogicParser instance. 
 
-        Karguments:
+        Keyword arguments:
         var -- The variable name for the element. 
         vals -- A list of all the numeric acceptable values for the element.
         '''

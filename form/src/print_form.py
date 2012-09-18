@@ -67,6 +67,7 @@ class PdfForm(object):
         self.indent_stack = {}
         self.logic_parser = LogicParser()
         self.to_print = []
+        self.print_selected_only = False
 
         if config_file != None:
             self.config = ConfigParser()
@@ -102,6 +103,8 @@ class PdfForm(object):
                         self.all_same_page = eval(vals)
                     elif name == '__header_box':
                         self.header_box = vals
+                    elif name == '__print_selected_only':
+                        self.print_selected_only = eval(vals)
                     elif name != '__forms':
                         self.logic_parser.add_constraint(name, eval(vals))
             else:
@@ -308,6 +311,13 @@ class PdfForm(object):
                         self.doc.section_name(clean_html(item.findtext('section_header')))
                         self.all_forms.section_name(clean_html(item.findtext('section_header')))
                     if choices != None:
+                        if self.print_selected_only:
+                            if self.logic_parser.has_constraint(field_name):
+                                valid_choices = self.logic_parser.get_const_vals(field_name)
+                                choice_list=[]
+                                for n in valid_choices:
+                                    choice_list.append(choices[n-1])
+                                choices=choice_list
                         if redcap_types.has_key(field_type):
                             redcap_types[field_type](self.doc, field_text, choices)
                             redcap_types[field_type](self.all_forms, field_text, choices)
