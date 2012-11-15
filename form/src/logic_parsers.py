@@ -74,7 +74,7 @@ class LogicParser(object):
         '''
       
         space = re.compile('\s+')
-        variable=re.compile('((?:\[[0-9a-z_]*\])?\[([0-9a-z_]+)\(?([0-9]*)\)?\]\s?([!=><]+)\s?[\'\"]?\\s*\[?\s*(-?[0-9a-z_]*)\s*\]?\s*[\'\"]?)(\s*and|\s*or)?\s*(.*)',
+        variable=re.compile('((?:\[[0-9a-z_]*\])?\[([0-9a-z_]+)\(?([0-9]*)\)?\]\s?([!=><]+)\s?[\'\"]?\\s*\[?\s*(-?[0-9a-z_\-]*)\s*\]?\s*[\'\"]?)(\s*and|\s*or)?\s*(.*)',
                 flags=re.IGNORECASE)
         function=re.compile('\s*(([a-z_0-9]+\([^\)]*\))\s*([!=><]*)\s*\'?\"?\s*([0-9]*)\s*\'?\"?\s*)(.*)',
                 flags=re.IGNORECASE)
