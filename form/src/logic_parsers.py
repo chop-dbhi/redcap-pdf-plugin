@@ -10,6 +10,7 @@ class BranchingLogicError(Exception):
         self.logic = logic
         print msg
 
+
 class LogicParser(object):
     def __init__(self):
         self.const = {}
@@ -34,7 +35,6 @@ class LogicParser(object):
             return True
         return True
 
-    
     def has_constraint(self, var_name):
         ''' Returns True if the form is constrained on the variable.
     
@@ -74,10 +74,16 @@ class LogicParser(object):
         '''
       
         space = re.compile('\s+')
-        variable=re.compile('((?:\[[0-9a-z_]*\])?\[([0-9a-z_]+)\(?([0-9]*)\)?\]\s?([!=><]+)\s?[\'\"]?\\s*\[?\s*(-?[0-9a-z_\-]*)\s*\]?\s*[\'\"]?)(\s*and|\s*or)?\s*(.*)',
+        variable=re.compile(
+                ('((?:\[[0-9a-z_]*\])?\[([0-9a-z_]+)\(?([0-9]*)\)?\]\s?
+                  ([!=><]+)\s?[\'\"]?\\s*\[?\s*(-?[0-9a-z_\-]*)\s*\]?\s
+                  *[\'\"]?)(\s*and|\s*or)?\s*(.*)'),
                 flags=re.IGNORECASE)
-        function=re.compile('\s*(([a-z_0-9]+\([^\)]*\))\s*([!=><]*)\s*\'?\"?\s*([0-9]*)\s*\'?\"?\s*)(.*)',
+        function=re.compile(
+                ('\s*(([a-z_0-9]+\([^\)]*\))\s*([!=><]*)\s*\'?\"?\s*([0-9]*)\s
+                  *\'?\"?\s*)(.*)'),
                 flags=re.IGNORECASE)
+
         logic = re.sub(space, ' ', logic)
 
         orig_str = logic
@@ -97,11 +103,11 @@ class LogicParser(object):
             else:
                 new_val = self._get_val(name, op, val)
 
-            new_val = " %(value)s " %{'value': new_val}
+            new_val =" {value} ".format(value=new_val)
             orig_str = re.sub(re.escape(repl_str), new_val, orig_str)
             var = variable.search(remaining)
         
-        # Evaluate the funcitons in the expression
+        # Evaluate the functions in the expression
         func = function.search(logic)
         while func != None:
             repl_str = func.group(1)
@@ -110,14 +116,17 @@ class LogicParser(object):
             val = func.group(4)
             remaining = func.group(5)
 
-            new_val = " %(value)s " %{'value':self._get_val(var, op, val)}
+            new_val = " {value} ".format(value=self._get_val(var, op, val))
             orig_str = re.sub(re.escape(repl_str), new_val, orig_str)
             func = function.search(remaining)
         try:
-            andor = re.search('(\sand|\sor)', orig_str,
-                    flags=re.IGNORECASE)
+            andor = re.search('(\sand|\sor)', 
+                              orig_str,
+                              flags=re.IGNORECASE)
             if andor:
-                orig_str = re.sub(andor.group(1), string.lower(andor.group(1)), orig_str)
+                orig_str = re.sub(andor.group(1), 
+                                  string.lower(andor.group(1)), 
+                                  orig_str)
             result = eval(orig_str)
             if not result:
                 self.blacklist.append(var_name)
@@ -125,7 +134,8 @@ class LogicParser(object):
         except:
             e = sys.exc_info()[1]
             print e
-            raise BranchingLogicError("The branching logic \'%(logic_str)s\' \
-cannot be properly evaluated by the LogicParser.\n"
-                %{'logic_str': logic}, logic)
+            raise BranchingLogicError(
+                    ("The branching logic '{logic_str}' cannot be properly 
+                     evaluated by the LogicParser.\n".format(logic_str=logic)),
+                    logic)
         return None

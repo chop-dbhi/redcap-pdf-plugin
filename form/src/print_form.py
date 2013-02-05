@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import sys
 import re
-import httplib
-import string
 import string
 import zipfile
 from glob import glob
@@ -30,6 +28,7 @@ class ArgumentError(Exception):
         self.msg = msg
         print msg
 
+
 class ConstraintError(Exception):
     ''' Error raised when the constraint section is not in the constraint file
     supplied.
@@ -38,7 +37,6 @@ class ConstraintError(Exception):
         self.msg = msg
         self.const = const
         print msg
-
 def clean_html(text):
     '''Return a string with the html elements removed.
     
@@ -59,9 +57,9 @@ class PdfForm(object):
     def __init__(self, xml_file, config_file=None):
         self.tree = etree.parse(xml_file)
         self.cur_form = None
-        self.multiline=True
-        self.header_box='box'
-        self.all_same_page=False
+        self.multiline = True
+        self.header_box = 'box'
+        self.all_same_page = False
 
         self.doc = None
         self.indent_stack = {}
@@ -73,7 +71,7 @@ class PdfForm(object):
             self.config = ConfigParser()
             self.config.read(config_file)
         self._indent = True
-        self.print_const_name=None
+        self.print_const_name = None
 
     def revert_indent_val(self):
         self._indent = not self._indent
@@ -86,11 +84,13 @@ class PdfForm(object):
         const_section -- The section in the config_file to use along with
             the base seciton
         '''
-        multiline=True
+        multiline = True
         if not self.config:
-            raise ValueError("self.config is %(self.config)s: Please set the config file before adding constraint." %({'config': self.config, 
-                                                }))
+            raise ValueError("self.config is {config}: Please set the config \
+                    file before adding constraint.".format(config=self.config))
+
         sections = ['base', const_section]
+        
         for sec in sections:
             if self.config.has_section(sec):
                 for name, vals in self.config.items(sec):
@@ -98,7 +98,7 @@ class PdfForm(object):
                         if vals == 'True':
                             self.print_const_name=const_section
                     elif name == '__multiline':
-                        self.multiline = eval(vals)
+                        self.multiline jjjjjjjkkj= eval(vals)
                     elif name == '__all_same_page':
                         self.all_same_page = eval(vals)
                     elif name == '__header_box':
@@ -109,7 +109,10 @@ class PdfForm(object):
                         self.logic_parser.add_constraint(name, eval(vals))
             else:
                 if sec != 'base':
-                    raise ConstraintError('%(sec)s is not in the constraint file.', sec);
+                    raise ConstraintError(
+                            '{section} is not in the constraint file.'.format(
+                                section=sec), sec
+                    )
 
 
     def _get_choices(self, choices):
@@ -120,8 +123,10 @@ class PdfForm(object):
         choices.
         '''
         vals = choices.split("\\n")
+        
         if len(vals) > 1:
-            return map(lambda c: c.lstrip(' 0123456789').lstrip(',').strip(' '), vals)
+            return map(lambda c: c.lstrip(' 0123456789').lstrip(',').strip(' '), 
+                       vals)
         else:
             vals = choices.split("|", 2)
             if len(vals) > 1:
@@ -144,9 +149,12 @@ class PdfForm(object):
         if vals[0] != '':
             for v in vals:
                 logic = v
-                long_form = re.search('\[([a-z_0-9]*)\](\[[a-z_0-9\(\)]*\][0-9 \'=]*)', v)
+                long_form = re.search(
+                        '\[([a-z_0-9]*)\](\[[a-z_0-9\(\)]*\][0-9 \'=]*)', v)
+
                 if long_form:
                     v = long_form.group(2)
+                
                 word = re.search('\[([a-z_0-9\(\)]*)\]([0-9 \'=]*)', v)
                 if word != None:
                     val = word.group(2)
@@ -177,7 +185,7 @@ class PdfForm(object):
                 for k in self.indent_stack.keys():
                     self.doc.stop_indent()
                     self.all_forms.stop_indent()
-                self.indent_stack={}
+                self.indent_stack = {}
                 return {}
             high = 0
             for l in logic:
@@ -191,7 +199,7 @@ class PdfForm(object):
                         self.doc.stop_indent()
                         self.all_forms.stop_indent()
                     del self.indent_stack[k]
-                    num+=1
+                    num += 1
                 self.indent_stack[cur_field] = 1
             elif high == top:
                 self.doc.start_indent()
@@ -205,7 +213,7 @@ class PdfForm(object):
                         if num > 0:
                             self.doc.stop_indent()
                             self.all_forms.stop_indent()
-                        num+=1
+                        num += 1
                 self.indent_stack[cur_field] = high + 1
    
     def __reset_indent(self):
@@ -214,7 +222,24 @@ class PdfForm(object):
             for val in range(top):
                 self.all_forms.stop_indent()
 
-    def process(self,const):
+    def _create_form(self, const, form_name):
+        if const != None:
+            self.doc = RedcapForm("{constraint}_{form_name}.pdf"
+                    .format(constraint=const, form_name=form_name), 
+                    self.multiline, self.header_box
+            )
+        else:
+            self.doc = RedcapForm("{form_name}.pdf".format(
+                form_name=form_name),self.multiline, self.header_box
+            ) 
+        if self.print_const_name != None:
+            self.doc.print_const_name(self.print_const_name)
+            self.all_forms.print_const_name(self.print_const_name)
+        self.doc.setup()
+        self.doc.form_name(form_name)
+
+
+    def process(self, const):
         ''' Parse and create the RedcapForm associated with the REDcap XML data
         dictionary.
         '''
@@ -227,29 +252,17 @@ class PdfForm(object):
                 name = form_name.replace('_', " ")
                 prop_name = string.capwords(name)
                 if self.cur_form == None:
-                    if const != None:
-                        self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf",
-                                self.multiline, self.header_box)
-                    else:
-                        self.doc = RedcapForm(item.findtext('form_name')+".pdf",
-                                self.multiline, self.header_box)
-                    if self.print_const_name != None:
-                        self.doc.print_const_name(self.print_const_name)
-                        self.all_forms.print_const_name(self.print_const_name)
-                    self.doc.setup()
-                    self.doc.form_name(prop_name)
-                    self.all_forms.form_name(prop_name)
+                    self._create_form(const, item.findtext('form_name'))
+                    
+                    
+                                       self.all_forms.form_name(prop_name)
                     self.cur_form = item.findtext('form_name')
 
                 elif not self.cur_form == item.findtext('form_name'):
                     self.doc.render()
                     self.__reset_indent()
-                    if const != None:
-                        self.doc = RedcapForm(const + '_' + item.findtext('form_name')+".pdf",
-                                self.multiline, self.header_box)
-                    else:
-                        self.doc = RedcapForm(item.findtext('form_name')+".pdf",
-                                self.multiline, self.header_box)
+                    self._create_form(const, item.findtext('form_name'))
+                    
                     self.indent_stack = {}
                     if self.print_const_name != None:
                         self.doc.print_const_name(self.print_const_name)
@@ -258,7 +271,8 @@ class PdfForm(object):
                     self.doc.form_name(prop_name)
                     if not self.all_same_page: 
                         if self.all_forms.form_name_current:
-                            self.all_forms.remove_header_footer(self.all_forms.form_name_current)
+                            self.all_forms.remove_header_footer(
+                                    self.all_forms.form_name_current)
                         self.all_forms.new_page()
                     self.all_forms.form_name(prop_name)
                     
@@ -299,28 +313,37 @@ class PdfForm(object):
                 branching_logic = item.findtext('branching_logic')
 
                 if field_type == 'text':
-                    spec = item.findtext('text_validation_type_or_show_slider_number')
+                    spec = item.findtext(
+                            'text_validation_type_or_show_slider_number')
                     if spec != '':
                         field_type = spec
-                choices = self._get_choices(item.findtext('select_choices_or_calculations'))
-                if branching_logic =='' or self.logic_parser.evaluate(field_name, branching_logic):
+                choices = self._get_choices(item.findtext(
+                        'select_choices_or_calculations'))
+                if (branching_logic =='' or 
+                    self.logic_parser.evaluate(field_name, branching_logic)):
                     if self._indent != '':
                         logic_vals = self._get_level(branching_logic)
-                        indent_stack = self._indent_ques(logic_vals, field_name)
+                        indent_stack = self._indent_ques(logic_vals, 
+                                                         field_name)
                     if item.findtext('section_header'):
-                        self.doc.section_name(clean_html(item.findtext('section_header')))
-                        self.all_forms.section_name(clean_html(item.findtext('section_header')))
+                        self.doc.section_name(clean_html(item.findtext(
+                                'section_header')))
+                        self.all_forms.section_name(clean_html(item.findtext(
+                                'section_header')))
                     if choices != None:
                         if self.print_selected_only:
                             if self.logic_parser.has_constraint(field_name):
-                                valid_choices = self.logic_parser.get_const_vals(field_name)
+                                valid_choices = (self.logic_parser
+                                        .get_const_vals(field_name))
                                 choice_list=[]
                                 for n in valid_choices:
                                     choice_list.append(choices[n-1])
                                 choices=choice_list
                         if redcap_types.has_key(field_type):
-                            redcap_types[field_type](self.doc, field_text, choices)
-                            redcap_types[field_type](self.all_forms, field_text, choices)
+                            redcap_types[field_type](
+                                    self.doc, field_text, choices)
+                            redcap_types[field_type](
+                                    self.all_forms, field_text, choices)
                         else:
                             redcap_types['text'](self.doc, field_text)
                             redcap_types['text'](self.all_forms, field_text)
@@ -366,16 +389,17 @@ def main(argv=None):
         'expected': '1-5',}))
     
     if config_file!= None and const_name != None:
-        form = PdfForm(xml_data,
-            os.path.join(
-                 os.path.join(
-                     os.path.dirname(os.path.dirname(inspect.getfile(inspect.currentframe()))),
-                      'config_files'), config_file))
+        configuration = os.path.join(os.path.join(os.path.dirname(
+                os.path.dirname(inspect.getfile(inspect.currentframe()))),
+                'config_files'), config_file) 
+        
+        form = PdfForm(xml_data, configuration)
         form.add_constraint_list(const_name)
     else:
         form = PdfForm(xml_data)
     form.process(const_name)
 
+    # Create the zip file of all Pdfs
     zip_handle = zipfile.ZipFile(zip_name, "w")
 
     for name in glob("*.pdf"):

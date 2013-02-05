@@ -5,28 +5,32 @@ class RedcapForm(Form):
     def __init__(self, *args, **kwargs):
         self.header_box = args[2].lower()
         self.multiline = args[1]
-        name= args[0]
+        name = args[0]
         Form.__init__(self,name, **kwargs)
         self._header_box = []
-        self.headerflag=False
-        self.form_name_current=None
+        self.headerflag = False
+        self.form_name_current = None
 
     def setup(self):
-        self.add_to_header_box("Clinician Name", RedcapForm.text_element,
-            ('Times-Roman', 11))
-        self.add_to_header_box("Study ID", RedcapForm.number_element,
-            ('Times-Roman', 11))
-        self.add_to_header_box("Date", RedcapForm.date_element,
-            ('Times-Roman', 11))
+        self.add_to_header_box("Patient Name", 
+                               RedcapForm.text_element,
+                               ('Times-Roman', 11)
+        )
+        self.add_to_header_box("Date", 
+                               RedcapForm.date_element,
+                               ('Times-Roman', 11)
+        )
+        
         if self.header_box == 'box':
             self.set_border(1.0, 0.5, 0.5, 0.5)
         else:
             self.set_border(0.5, 0.5, 0.5, 0.5)
         self.set_header("Confidential", 'left',('Times-Italic', 12), True)
         cur_date = date.today();
-        self.set_footer("Form generated on " + str(cur_date.month) + "/" +
-                str(cur_date.day) + "/" +
-                str(cur_date.year), 'left',('Times-Roman', 10), True)
+        self.set_footer("Form generated on {month}/{day}/{year}".format(
+                month=str(cur_date.month),day=str(cur_date.day), year=str(cur_date.year)),
+                'left',('Times-Roman', 10), True)
+        
         self.set_font('Times-Roman', 11)
 
     def add_to_header_box(self, element, callback,font, choices=None):
@@ -41,7 +45,8 @@ class RedcapForm(Form):
             old_x, old_y = self.text_obj.getCursor()
             old_fnt = self.font
             old_fnt_size = self.font_size
-            self.text_obj.setTextOrigin(self._left, 20 + self.spacing)
+            self.text_obj.setTextOrigin(self._left, 
+                                        20 + self.spacing)
             self._x, self._y = self.text_obj.getCursor()
             self.headerflag=True
             for f in self._header_box:
@@ -52,7 +57,8 @@ class RedcapForm(Form):
                     f[1](self,f[0])
             self.headerflag=False
             x, y = self.text_obj.getCursor()
-            Form._draw_box(self,self._left-5, 20, self._right+5 , y+ self.spacing/2.0)
+            Form._draw_box(self, self._left - 5, 20, 
+                           self._right + 5, y + self.spacing/2.0)
             self._left = lft
             self._right = rt
             self.text_obj.setTextOrigin(old_x, self._y + self.spacing)
@@ -61,6 +67,7 @@ class RedcapForm(Form):
     
     def form_name(self, name, font_name="Times-BoldItalic", font_size=20):
         Form.form_name(self, name, font_name, font_size)
+
         if self.header_box == 'form_name':
             if self.form_name_current is not None:
                 self.remove_header_footer(self.form_name_current)
@@ -183,12 +190,15 @@ class RedcapForm(Form):
     
     def print_grey(self, line, text):
         self.canvas.setFillGray(0.90)
-        self.canvas.drawString(self._x + self.char_len/2.0  , self._y - self.char_len / 3.0, text)
+        self.canvas.drawString(self._x + self.char_len/2.0, 
+                               self._y - self.char_len/3.0, 
+                               text)
         self.canvas.setFillGray(0.0)
 
-    def print_grey_txt_field(self,text, grey_txt):
+    def print_grey_txt_field(self, text, grey_txt):
         len_ques = self.canvas.stringWidth(text, self.font, self.font_size)
-        line = self.canvas.stringWidth(grey_txt, self.font, self.font_size) + self.char_len * 2.0
+        line = self.canvas.stringWidth(grey_txt, self.font, self.font_size) + 
+                self.char_len*2.0
         self.canvas.setLineWidth(1)
         if self._x != self._left:
             if self._x + len_ques + line + self.char_len > self._right:

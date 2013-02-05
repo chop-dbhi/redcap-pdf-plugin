@@ -20,27 +20,31 @@ class FormCanvas(canvas.Canvas):
     def save(self):
         page_num = 1
         total = len(self._codes)
+        
         for c in self._codes:
             self._code = c 
             pg_size = self._pagesize
+            
             self.setFont("Times-Roman", 10)
-            txt = '%(num)s/%(total)s' % {
-                    'num': page_num,
-                    'total':total,
-                    }
+            
+            txt = '{num}/{total}'.format(num=page_num, total=total)
+            
             char_len = self.stringWidth("O", 'Times-Roman', 10)
             x_start = (pg_size[0] - self.stringWidth(txt, 'Times-Roman',10) -
-            char_len * 4)
+                    char_len*4)
+            
             text_obj = self.beginText()
             text_obj.setTextOrigin(x_start, 30.0)
             text_obj.textOut(txt)
+            
             self.drawText(text_obj)
             canvas.Canvas.showPage(self)
             page_num+=1
+
         self._doc.SaveToFile(self._filename, self)
 
 class Form(object):
-    def __init__(self, filename, font="Times-Roman", font_size=12):
+    def __init__(self, filename, font="Times-Roman", font_size=12, space_factor=1.60):
         self.canvas = FormCanvas(filename, bottomup=0, pagesize=letter)
         self.text_obj = self.canvas.beginText()
         self._x, self._y = self.text_obj.getCursor()
@@ -48,7 +52,7 @@ class Form(object):
         self.fm_name = None
 
         self.set_font(font, font_size)
-        self.spacing = self.font_size * 1.60
+        self.spacing = self.font_size * space_factor
  
         self._page_width, self._page_height = letter
         self.set_border(0.5, 0.5, 0.5, 0.5)
@@ -103,8 +107,8 @@ class Form(object):
         '''
         self._left = left * inch
         self._top = top * inch
-        self._bottom = self._page_height - (bottom * inch)
-        self._right = self._page_width - (right * inch)
+        self._bottom = self._page_height - (bottom*inch)
+        self._right = self._page_width - (right*inch)
         self._x = self._left
         self._y = self._top + self.font_size
         self.text_obj.setTextOrigin(self._x, self._y)
@@ -125,7 +129,7 @@ class Form(object):
     def add_total_page_num(self):
         '''Add the (current page number)/(total page number) to header.
         '''
-        self.page_num=True
+        self.page_num = True
 
     def _add_continued_footer(self):
         self.set_footer("(Continued on next page.)", "right", ("Times-Italic",
@@ -156,43 +160,47 @@ class Form(object):
             self._x, self._y = self.text_obj.getCursor()
         
             for x in self.header_footer:
-                self._set_header_footer(x.get('text', None), x.get('location',None),
-                    x.get('headfoot', None), x.get("font"))
+                self._set_header_footer(x.get('text', None),
+                                        x.get('location',None),
+                                        x.get('headfoot', None), 
+                                        x.get("font"))
 
     def new_line(self, **kwargs):
         '''Move the cursor to beginning of the next line.
         '''
         break_text = kwargs.get('break_text', False)
-        spacing = kwargs.get('spacing', self.spacing)
+        spacing = kwargs.get('spacing', self.spacing
+                )
         if self._y + spacing >= self._bottom:
             self.new_page(break_text)
         else:
             self.text_obj.setTextOrigin(self._left, self._y + spacing)
             self._x, self._y = self.text_obj.getCursor()
  
-    def _set_header_footer(self,text_prt,location,headfoot,font):
+    def _set_header_footer(self, text_prt,location,headfoot,font):
         if location == 'left':
             x_start = self.margin
         elif location == 'center':
             len_text = self.canvas.stringWidth(text_prt, self.font,
                 self.font_size)
-            x_start = (self._page_width - len_text) / 2.0
+            x_start = (self._page_width-len_text) / 2.0
         elif location == 'right':
             len_text = self.canvas.stringWidth(text_prt, self.font,
                 self.font_size)
             x_start = self._page_width - len_text - self.char_len - self.margin
         else:
-            raise ValueError("Document: %(hf_location)s is not a valid choice \
-                for header or footer. Please specify 'left', 'right' or \
-                'center'." %{hf_location : location})
+            raise ValueError("Document: {hf_location} is not a valid choice "
+                "for header or footer. Please specify 'left', 'right' or "
+                "'center'.".format(hf_location=location))
         
         if headfoot == 'header':
             y_start = self.font_size + self.margin
         elif headfoot == 'footer':
             y_start = self._page_height - self.margin
         else:
-            raise ValueError("%(placement)s is not a valid option. Please \
-                select 'header' or 'footer'." %{placement : headfoot})
+            raise ValueError("{placement} is not a valid option. Please "
+                "select 'header' or 'footer'.".format(placement=headfoot)
+
         fnt = self.font
         fnt_sz = self.font_size
         self.set_font(font[0], font[1])
@@ -200,6 +208,7 @@ class Form(object):
         self.text_obj.setTextOrigin(x_start, y_start)
         self.text_obj.textOut(text_prt)
         self.text_obj.setTextOrigin(self._x, self._y)
+        
         self.set_font(fnt, fnt_sz)
     
     def remove_header_footer(self, text):
@@ -259,38 +268,44 @@ class Form(object):
     def _print(self, text, **kwargs):
         newline = re.compile("<BR>")
         words = text.split()
-        len_words = map(lambda wrd: self.canvas.stringWidth(wrd, self.font,
-            self.font_size), words)
+        len_words = map(lambda wrd: self.canvas.stringWidth(
+                wrd, self.font, self.font_size), words)
         line = 0
         line_str = ""
+        
         while len(words) > 0:
             word = words.pop(0) + ""
+            
             if "[[B]]" in word:
                 self.text_obj.textOut(line_str)
-                self.text_obj.setTextOrigin(self._x + self.canvas.stringWidth(line_str, self.font, self.font_size), self._y)
+                self.text_obj.setTextOrigin(self._x + self.canvas.stringWidth(
+                        line_str, self.font, self.font_size), self._y)
                 self._x, self._y = self.text_obj.getCursor()
                 line_str = ""
                 self.toggle_bold()
             else:
+                
                 if newline.match(word):
                     self.text_obj.textOut(line_str)
                     self.new_line()
                     line_str = ""
                 else:
-                    new_wrd_len = self.canvas.stringWidth(word,self.font,
-                            self.font_size)
-                    wrd_len = self.canvas.stringWidth(line_str, self.font,
-                        self.font_size) 
+                    new_wrd_len = self.canvas.stringWidth(
+                            word, self.font, self.font_size)
+                    wrd_len = self.canvas.stringWidth(
+                            line_str, self.font, self.font_size) 
                     if self._x + wrd_len + new_wrd_len > self._right:
                         self.text_obj.textOut(line_str)
                         self.new_line(**kwargs)
                         line_str = ""
                     line_str+=word + " "
+        
         if not line_str == "": 
             self.text_obj.textOut(line_str)
             line_str = line_str.strip()
             self.text_obj.setTextOrigin(self._x +
-                self.canvas.stringWidth(line_str, self.font, self.font_size), self._y)
+                self.canvas.stringWidth(line_str, self.font, self.font_size), 
+                                        self._y)
             self._x, self._y = self.text_obj.getCursor()
 
 
@@ -305,6 +320,7 @@ class Form(object):
 
         text = text.strip() 
         len_txt = self.canvas.stringWidth(text, self.font, self.font_size)
+
         if len_txt > self._right - self._left:
             #Text won't fit on one line, break up as needed
             if not self._x == self._left:
@@ -324,15 +340,18 @@ class Form(object):
                 else:
                     self.text_obj.textOut(line)
                     self.text_obj.setTextOrigin(self._x +
-                        self.canvas.stringWidth(line, self.font, self.font_size), self._y)
+                        self.canvas.stringWidth(line, self.font, 
+                                                self.font_size), self._y)
                     self._x, self._y = self.text_obj.getCursor()
                     self.new_line()
             line = lines.pop()
+
             if "[[B]]" in line:
                 self._print(line)
             else:
                 self.text_obj.textOut(line)
-                self.text_obj.setTextOrigin(self._x + self.canvas.stringWidth(line, self.font, self.font_size), self._y)
+                self.text_obj.setTextOrigin(self._x + self.canvas.stringWidth(
+                        line, self.font, self.font_size), self._y)
                 self._x, self._y = self.text_obj.getCursor()
 
     def form_name(self, name, font_name="Times-BoldItalic", font_size=20):
@@ -347,7 +366,7 @@ class Form(object):
         font_size -- Number specifying the size of the font to use to render
             the name.
         '''
-        if self._y + self.spacing * 3 >= self._bottom:
+        if self._y + self.spacing*3 >= self._bottom:
                 self.new_page()
         elif self._x != self._left:
                 self.new_line()
@@ -367,7 +386,7 @@ class Form(object):
         
         self.canvas.setLineWidth(2.5)
         self.canvas.line(self._x, self._y, self._right, self._y)
-        self.text_obj.setTextOrigin(self._start_left, self._y + (inch * .05))
+        self.text_obj.setTextOrigin(self._start_left, self._y + (inch*.05))
         self._x, self._y = self.text_obj.getCursor()
         
         self.canvas.setLineWidth(1)
@@ -395,7 +414,7 @@ class Form(object):
         if self._x != self._left:
             self.new_line()
         
-        if self._y + self.spacing * 2 >= self._bottom:
+        if self._y + self.spacing*2 >= self._bottom:
             self.new_page()
         
         self.text_obj.setTextOrigin(self._start_left, self._y)
@@ -417,8 +436,10 @@ class Form(object):
         '''
         if self._left + self.indent >= (self._right - self._left)/2.0:
             return
+        
         if self._x != self._left:
             self.new_line()
+
         self._left = self._left + self.indent
         self.text_obj.setTextOrigin(self._left, self._y)
         self._x, self._y = self.text_obj.getCursor()
@@ -428,8 +449,10 @@ class Form(object):
         '''
         if self._left == self.margin:
             return
+
         if self._x != self._left:
             self.new_line()
+
         self._last_multi = False
         self._left = self._left - self.indent  
         self.text_obj.setTextOrigin(self._left, self._y)
@@ -442,11 +465,14 @@ class Form(object):
 
     def _time_space(self, not_start=True):
         space = self.char_len * .75
+
         if not_start:
-            self.text_obj.setTextOrigin(self._x + space/2.0, self._y - space/2.0)
+            self.text_obj.setTextOrigin(self._x + space/2.0, 
+                                        self._y - space/2.0)
             self._x, self._y = self.text_obj.getCursor()
             self.text_obj.textOut(':')
-            self.text_obj.setTextOrigin(self._x + space, self._y + space/2.0)
+            self.text_obj.setTextOrigin(self._x + space, 
+                                        self._y + space/2.0)
             self._x, self._y = self.text_obj.getCursor()
         else:
             self.text_obj.setTextOrigin(self._x + space, self._y)
@@ -465,17 +491,24 @@ class Form(object):
             elif last_l != l:
                 space_callback(self)
                 last_l = l
+
             self.canvas.line(self._x, self._y, self._x, up_y)
             self.canvas.line(self._x,self._y,self._x + line_len ,self._y)
-            self.canvas.line(self._x + line_len, self._y, self._x + line_len,
-                up_y)
+            self.canvas.line(self._x + line_len, 
+                             self._y, 
+                             self._x + line_len,
+                             up_y)
+
             self.canvas.setFillGray(0.90)
             start = (line_len) / 4.0
-            self.canvas.drawString(self._x + start  , self._y - self.char_len
-                /3.0, string.upper(l))
+            self.canvas.drawString(self._x + start, 
+                                   self._y - self.char_len/3.0, 
+                                   string.upper(l))
             self.canvas.setFillGray(0.0)
+
             self.text_obj.setTextOrigin(self._x + line_len, self._y)
             self._x, self._y = self.text_obj.getCursor()
+        
         self.text_obj.setTextOrigin(self._x + self.char_len, self._y)
         self._x, self._y = self.text_obj.getCursor()
     
@@ -514,11 +547,13 @@ class Form(object):
     def print_text_line(self, line):
         self.canvas.setLineWidth(.5)
         self._x, self._y = self.text_obj.getCursor()
+
         if self._x + line > self._right:
             if line > self._right - self._left:
                 while line > 0:
                     if line + self._x > self._right:
-                        self.canvas.line(self._x, self._y, self._right, self._y)
+                        self.canvas.line(self._x, self._y, self._right, 
+                                         self._y)
                         self.new_line()
                         line = line - (self._right-self._x)
                     else:
@@ -533,9 +568,8 @@ class Form(object):
         else:
             self.canvas.line(self._x, self._y, self._x + line, self._y)
             self.text_obj.setTextOrigin(self._x + line + self.char_len,
-                self._y)
+                                        self._y)
             self._x, self._y = self.text_obj.getCursor()
-
 
     def text_element(self, text, line_len = 1):
         '''Add a text element to the form.
@@ -547,38 +581,14 @@ class Form(object):
         len_ques = self.canvas.stringWidth(text, self.font, self.font_size)
         line = line_len * inch
         self.canvas.setLineWidth(1)
+        
         if self._x != self._left:
             if self._x + len_ques + line + self.char_len > self._right:
                 self.new_line()
         
         self.print_text(text)
         self.print_text_line(line)
-        '''
-        self.canvas.setLineWidth(.5)
-        self._x, self._y = self.text_obj.getCursor()
-        if self._x + line > self._right:
-            if line > self._right - self._left:
-                while line > 0:
-                    if line + self._x > self._right:
-                        self.canvas.line(self._x, self._y, self._right, self._y)
-                        self.new_line()
-                        line = line - (self._right-self._x)
-                    else:
-                        self.canvas.line(self._x , self._y, self._x + line,
-                            self._y)
-                        self.new_line()
-                        line = 0
-            else:
-                self.new_line()
-                self.canvas.line(self._x, self._y, self._x + line, self._y)
-                self.new_line()
-        else:
-            self.canvas.line(self._x, self._y, self._x + line, self._y)
-            self.text_obj.setTextOrigin(self._x + line + self.char_len,
-                self._y)
-            self._x, self._y = self.text_obj.getCursor()
-        '''
-
+       
     def _draw_radio_button(self, size=12):
         radius = size / 3
         self.canvas.setLineWidth(.5)
@@ -588,7 +598,9 @@ class Form(object):
     
     def _draw_checkbox(self, size=7):
         self.canvas.setLineWidth(0.5)
-        self.canvas.rect(self._x, self._y - (self.font_size / 1.75), size, size, stroke=1)
+        self.canvas.rect(self._x, 
+                         self._y - (self.font_size/1.75), 
+                         size, size, stroke=1)
         self._x = self._x + size * 1.25
         self.text_obj.setTextOrigin(self._x, self._y)
         self._x, self._y = self.text_obj.getCursor()
@@ -596,7 +608,8 @@ class Form(object):
     def _multi_choice(self, text, choices, shape_callback, size=12):
         text = text.strip()
         num_opts = len(choices)
-        len_options = map(lambda choice: self.canvas.stringWidth(choice, self.font, self.font_size), choices)
+        len_options = map(lambda choice: self.canvas.stringWidth(
+                choice, self.font, self.font_size), choices)
         sorted_len = sorted(len_options, reverse=True)
         total_len = sum(len_options) + self.char_len * (num_opts + 1)
         ques_len = self.canvas.stringWidth(text, self.font, self.font_size) 
@@ -604,8 +617,8 @@ class Form(object):
         #Print Multiple Choice Question on same line if possible
         if (total_len + self.char_len * (num_opts + 1) + ques_len <=
             self._right - self._left):
-            if (self._x + total_len + self.char_len * (num_opts + 1) + ques_len
-                > self._right):
+            if (self._x + total_len + self.char_len*(num_opts+1) + ques_len > 
+                    self._right):
                 if self._x != self._left:
                     self.new_line()
             self.print_text(text, break_text=True)
@@ -615,8 +628,8 @@ class Form(object):
             for c in choices:
                     shape_callback(self,size)
                     self.text_obj.textOut(c)
-                    self.text_obj.setTextOrigin(self._x + len_options[i] +
-                        self.char_len * 1.5, self._y)
+                    self.text_obj.setTextOrigin(self._x + len_options[i] + 
+                            self.char_len*1.5, self._y)
                     i += 1
                     self._x, self._y = self.text_obj.getCursor()
         else:
@@ -626,13 +639,14 @@ class Form(object):
             self.new_line(break_text=True)
             
             #If all choices will fit on the same line then equally space
-            if (sorted_len[0] * num_opts) + (num_opts * size) + (num_opts * self.char_len) < self._right - self._left:
-                size_space = (self._right - (self._left + size)) / (num_opts * 1.0)
+            if (sorted_len[0]*num_opts) + (num_opts*size) + 
+                    (num_opts*self.char_len) < self._right - self._left:
+                size_space = (self._right - (self._left+size))/(num_opts*1.0)
             else:
                 #Find largest choice and base columns off that
                 size_space = sorted_len[0] + self.char_len + size
         
-            num_per_row = floor((self._right - self._left) /(size_space) )
+            num_per_row = floor((self._right-self._left) / (size_space))
             if num_per_row == 0:
                 num_per_row = 1
         
@@ -641,13 +655,14 @@ class Form(object):
             index = 0
             self.text_obj.setTextOrigin(self._x + self.char_len, self._y)
             self._x, self._y = self.text_obj.getCursor()
+
             for n in range(int(rows)):
                 for m in range(int(num_per_row)):
                     shape_callback(self,size)
                     old_x, old_y = self.text_obj.getCursor()
                     self._print(choices[index])
                     self.text_obj.setTextOrigin(old_x + size_space - size,
-                            self._y)
+                                                self._y)
                     self._x, self._y = self.text_obj.getCursor()
                     index += 1
                     if index > num_opts - 1:
@@ -655,11 +670,12 @@ class Form(object):
                 if n != int(rows) - 1:
                     if self._y + self.spacing >= self._bottom:
                         self.new_page(True)
-                        self.text_obj.setTextOrigin(self._x + self.char_len, self._y)
+                        self.text_obj.setTextOrigin(self._x + self.char_len, 
+                                                    self._y)
                         self._x, self._y = self.text_obj.getCursor()
                     else:
-                        self.text_obj.setTextOrigin(self._left + self.char_len, self._y
-                            + self.spacing)
+                        self.text_obj.setTextOrigin(self._left + self.char_len, 
+                                                    self._y + self.spacing)
                         self._x, self._y = self.text_obj.getCursor()
             if self._left + self.char_len < self._x:
                 self._last_multi = True
@@ -688,8 +704,8 @@ class Form(object):
         self._multi_choice(text, choices, Form._draw_radio_button, size=12)
     
     def _draw_slider(self, choices):
-        assert(len(choices)==3)
-        line_len = (self._right - self._start_left) /2.0
+        assert(len(choices) == 3)
+        line_len = (self._right-self._start_left) / 2.0
 
         if self._x + line_len > self._right: 
             self.new_line()
@@ -697,11 +713,11 @@ class Form(object):
             self.text_obj.setTextOrigin(self._x + line_len/2.0, self._y)
             self._x, self._y = self.text_obj.getCursor()
         
-        up_y = self._y - (self.font_size / 3.0)
-        down_y = self._y + (self.font_size / 3.0)
+        up_y = self._y - (self.font_size/3.0)
+        down_y = self._y + (self.font_size/3.0)
         line_start = self._x
         
-        middle_x = (line_len / 2.0) + self._x
+        middle_x = (line_len/2.0) + self._x
         self.canvas.setLineWidth(.5)
         self.canvas.line(self._x, self._y, self._x + line_len, self._y)
         
@@ -711,20 +727,20 @@ class Form(object):
         
         #TODO: make sure that the string text fits into a fixed with space. If
         #not word wrap.
-        x = self._x - self.canvas.stringWidth(choices[0], self.font,
-                self.font_size) / 2.0
-        self.text_obj.setTextOrigin(x, self._y - self.font_size /2.0)
+        x = self._x - self.canvas.stringWidth(
+                choices[0], self.font, self.font_size) / 2.0
+        self.text_obj.setTextOrigin(x, self._y - self.font_size/2.0)
         self._x, self._y = self.text_obj.getCursor()
         self.print_text(choices[0])
 
-        x = line_start + line_len - self.canvas.stringWidth(choices[2], self.font,
-                self.font_size) / 2.0
+        x = line_start + line_len - self.canvas.stringWidth(
+                choices[2], self.font, self.font_size) / 2.0
         self.text_obj.setTextOrigin(x, self._y)
         self._x, self._y = self.text_obj.getCursor()
         self.print_text(choices[2])
        
-        x = middle_x - self.canvas.stringWidth(choices[1], self.font,
-                self.font_size) / 2.0
+        x = middle_x - self.canvas.stringWidth(
+                choices[1], self.font, self.font_size) / 2.0
         self.text_obj.setTextOrigin(x, self._y)
         self._x, self._y = self.text_obj.getCursor()
         self.print_text(choices[1])
@@ -744,7 +760,7 @@ class Form(object):
             self.new_line()
         
         self.print_text(text)
-        self.text_obj.setTextOrigin(self._x + self.char_len * 6, self._y)
+        self.text_obj.setTextOrigin(self._x + self.char_len*6, self._y)
         self._x, self._y = self.text_obj.getCursor()
         
         self._draw_slider(choices)
@@ -766,13 +782,15 @@ class Form(object):
             self.new_line()
         if self._y + (self.spacing * line_nums + 1) >= self._bottom:
             self.new_page()
+        
         self.print_text(text)
+        
         if self._x!=self._left:
             self.new_line(spacing=inch*.05)
-        self._draw_box(self._x + self.char_len, self._y, self._right, self._y +
-            (line_nums * self.spacing)) 
-        self.text_obj.setTextOrigin(self._left, self._y + (self.spacing *
-            (line_nums)))
+        self._draw_box(self._x + self.char_len, self._y, 
+                       self._right, self._y + (line_nums*self.spacing)) 
+        self.text_obj.setTextOrigin(self._left, 
+                                    self._y + (self.spacing*line_nums))
         self._x, self._y = self.text_obj.getCursor()
         self.new_line()
 
