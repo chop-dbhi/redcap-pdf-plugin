@@ -37,6 +37,7 @@ class ConstraintError(Exception):
         self.msg = msg
         self.const = const
         print msg
+
 def clean_html(text):
     '''Return a string with the html elements removed.
     
@@ -95,17 +96,34 @@ class PdfForm(object):
             if self.config.has_section(sec):
                 for name, vals in self.config.items(sec):
                     if name == '__print_name':
+                        #Flag for whether or not the form name should be
+                        #printed at the top of the form
                         if vals == 'True':
                             self.print_const_name=const_section
                     elif name == '__multiline':
-                        self.multiline jjjjjjjkkj= eval(vals)
+                        # If flase each element is printed on an individual line
+                        # If true as many elements that can fit on a line are
+                        # printed 
+                        self.multiline = eval(vals)
                     elif name == '__all_same_page':
+                        # Print all the forms together on one page
                         self.all_same_page = eval(vals)
                     elif name == '__header_box':
+                        #The values to put in the header box
                         self.header_box = vals
+                    elif name == '__regex_no_print':
+                        # A list of regular expressions. If the regular
+                        # expression match a field name it will not be printed
+                        vals = vals.split(",")
+                        self.logic_parser.add_no_print_regex(vals)
                     elif name == '__print_selected_only':
+                        # Only print the values that are specified instead of
+                        # all the options
                         self.print_selected_only = eval(vals)
                     elif name != '__forms':
+                        # Add parsing Logic constriaints. You designate values
+                        # in the const_* file and only print if conditions are
+                        # met.
                         self.logic_parser.add_constraint(name, eval(vals))
             else:
                 if sec != 'base':
@@ -253,9 +271,7 @@ class PdfForm(object):
                 prop_name = string.capwords(name)
                 if self.cur_form == None:
                     self._create_form(const, item.findtext('form_name'))
-                    
-                    
-                                       self.all_forms.form_name(prop_name)
+                    self.all_forms.form_name(prop_name)
                     self.cur_form = item.findtext('form_name')
 
                 elif not self.cur_form == item.findtext('form_name'):
