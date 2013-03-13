@@ -283,8 +283,6 @@ class PdfForm(object):
                     if self.print_const_name != None:
                         self.doc.print_const_name(self.print_const_name)
                         self.all_forms.print_const_name(self.print_const_name)
-                    self.doc.setup()
-                    self.doc.form_name(prop_name)
                     if not self.all_same_page: 
                         if self.all_forms.form_name_current:
                             self.all_forms.remove_header_footer(
