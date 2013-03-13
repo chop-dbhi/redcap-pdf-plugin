@@ -197,8 +197,8 @@ class RedcapForm(Form):
 
     def print_grey_txt_field(self, text, grey_txt):
         len_ques = self.canvas.stringWidth(text, self.font, self.font_size)
-        line = self.canvas.stringWidth(grey_txt, self.font, self.font_size) + 
-                self.char_len*2.0
+        line = (self.canvas.stringWidth(grey_txt, self.font, self.font_size) + 
+                self.char_len * 2.0)
         self.canvas.setLineWidth(1)
         if self._x != self._left:
             if self._x + len_ques + line + self.char_len > self._right:
