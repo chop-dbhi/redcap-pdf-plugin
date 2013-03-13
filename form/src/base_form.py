@@ -199,8 +199,7 @@ class Form(object):
             y_start = self._page_height - self.margin
         else:
             raise ValueError("{placement} is not a valid option. Please "
-                "select 'header' or 'footer'.".format(placement=headfoot)
-
+                "select 'header' or 'footer'.".format(placement=headfoot))
         fnt = self.font
         fnt_sz = self.font_size
         self.set_font(font[0], font[1])
@@ -639,9 +638,9 @@ class Form(object):
             self.new_line(break_text=True)
             
             #If all choices will fit on the same line then equally space
-            if (sorted_len[0]*num_opts) + (num_opts*size) + 
-                    (num_opts*self.char_len) < self._right - self._left:
-                size_space = (self._right - (self._left+size))/(num_opts*1.0)
+            if ((sorted_len[0]*num_opts) + (num_opts*size) + 
+                    (num_opts*self.char_len) < self._right - self._left):
+                size_space = (self._right - (self._left+size)) / (num_opts*1.0)
             else:
                 #Find largest choice and base columns off that
                 size_space = sorted_len[0] + self.char_len + size
