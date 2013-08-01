@@ -263,8 +263,13 @@ class PdfForm(object):
         '''
         self.all_forms = RedcapForm('ALL.pdf', self.multiline, self.header_box)
         self.all_forms.setup()
-
-        for item in self.tree.iter('item'):
+        
+        try:
+            iterator = self.tree.iter('item')
+        except AttributeError:
+            iterator = self.tree.findall('.//*')
+        
+        for item in iterator:
             form_name = item.findtext('form_name')
             if self.to_print == [] or form_name in self.to_print:
                 name = form_name.replace('_', " ")
