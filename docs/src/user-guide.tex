@@ -1,0 +1,268 @@
+\documentclass[12pt]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[none]{hyphenat}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+%\setlength{\parindent} {0pt}
+%\setlength{\parskip}{12pt}
+%\usepackage{setspace}
+%\title {Advanced REDCap Form Plugin\\
+%	User Guide - v1.0}
+
+%\author {
+%	Center for Biomedical Informatics (CBMi)\\
+%	The Children's Hospital of Philadelphia\\}
+%\date{\today}
+
+%\linespread{.5}
+\begin{document}
+\begin{titlepage}
+\begin{center} 
+\vspace*{\fill}
+\HRule \\[0.4cm]
+{\huge \bfseries Advanced REDCap Form Plugin} \\
+{\huge \bfseries User Guide} \\[1.0cm]
+{\huge \bfseries Version 1.0} \\[0.4cm]
+\HRule \\[1.5cm]
+
+{\large \bfseries by} \\
+\includegraphics[]{CBMI} \\[5.0cm]
+{\LARGE \today}
+\vspace*{\fill}
+\vfill
+\includegraphics[width=1.00\textwidth]{CHOP-research} 
+\end{center}
+\end{titlepage}
+
+\tableofcontents
+\listoffigures
+\newpage
+
+%############
+% Introduction
+%############
+\section{Introduction}
+The Advanced REDCap Form Plugin is a plugin for REDCap that allows users to print the electronic forms they create as PDFs using advanced formatting features. 
+    
+    \subsection{Features}
+        \begin{itemize}
+            \itemsep0pt
+		\item Radio and Dropdown elements are rendered with circles for the answer choices. This is to indicate that only one answer should be selected.
+		\item Checkbox elements are rendered with squares for the answer choices. This is to indicate that multiple answers could be selected.
+		\item Date elements are rendered as individual text boxes with a light grey `M', `D', or `Y' in each in order to indicate month, day, or year respectively.
+	        \item All multiple choice questions(checkbox, dropdown, and radio) are rendered in multiple columns if possible. The number and size of columns are determined at runtime based on the longest answer choice. 
+		\item When a question is broken up onto two different pages, \textit{'(continued on next page.)'} is rendered on the bottom of the first page.
+		\item HTML tags are parsed out of the text before it is rendered and the HTML `\textless br /\textgreater' tag is converted into a newline on the PDF.
+		\item At the top right of every page, the page number is printed along with the total number of pages in the form.
+		\item At the bottom left of every page, the date the form was rendered is printed. This to help ensure that users are not using outdated PDF forms.
+		\item REDCap allows users to specify branching logic when creating forms or surveys. In order to visually display this branching on the PDF form, the question that has branching logic is indented. Once a question has been indented to the center of the page, further indenting stops in order to preserve the legibility of the document.
+		\item A configuration file can be utilized to create custom forms based on the branching logic. In the configuration file, variables can be specified with answer choices to create PDF forms as if the user had answered the question associcated with the variable with the answer choice.
+	    \end{itemize}
+
+%###########
+% Installation
+%###########
+\section{Installation}
+    \subsection{Dependencies}
+        \begin{description}
+             \item[Python] Version 2.7 To install, please see the python site. (\url{http://www.python.org/download/})
+             \item[ReportLab] Version 2.5. Once python is installed, you can install ReportLab by typing `pip install reportlab' into the command prompt or see the ReportLab site for further documentation on the library. (\url{http://www.reportlab.com/software/opensource/rl-toolkit/}) 
+             \item[REDCap] Version 4.9.0 or greater. To install, please see the REDCap site to become a consortium member. (\url{http://www.project-redcap.org/})
+             \item[REDCap Connect] Once REDCap is installed, the Connect file needs to be installed. To install the REDCap Connect file, please see the REDCap wiki plugin page. (\url{https://iwg.devguard.com/trac/redcap/wiki/Plugins})
+         \end{description}
+
+    \subsection{Installing the Advanced REDCap Form Plugin}
+     	Once all of the dependencies have been installed, place the `form' folder inside the `plugins' folder in the main directory where the `database.php' file is located. If the `plugins' folder does not exist, create a folder titled `plugins' and place the `form' folder inside it. When you are done, open the `form' folder and locate the `config.php' file.
+\\
+
+	Open the `config.php' file with a text editor. You should see two variables, \textit{\$redcap\_connect\_dir} and \textit{\$python\_path}. You will need to change the value of the \textit{\$python\_path} variable to reflect the current python install directory. 
+\\
+
+	In most cases, you will not need to change the \textit{\$redcap\_connect\_dir} value. You would only need to change the \textit{\$redcap\_connect\_dir} value if you did not place the  `redcap\_connect.php' file in the same directory as your `plugins' folder (both should be in the main directory where the `database.php' file is located). Once you are done making changes, save and close the file.         
+         \begin{figure}[H]
+	     \centering
+             \includegraphics[width=1.00\textwidth]{config_php}
+             \caption{Example `config.php' file.} 
+	\end{figure}
+    The Advanced REDCap Form Plugin is now installed on your server. In order for users to access the plugin, you will need to set up a project bookmark within REDCap. For instructions on setting up a project bookmark to access the plugin, please see Section~\ref{sec:bookmark}~\nameref{sec:bookmark}.
+     \newpage
+
+    \subsection{Configuring a Project Bookmark for the Plugin} \label{sec:bookmark}
+	Once the plugin has been installed on your REDCap server, you can set up bookmarks for users to access the plugin. 
+Go to your REDCap `Project Setup' page and select the `Add or Edit Bookmarks' button, as demonstrated in in Figure~\ref{fig:nav_bookmark}.
+        \begin{figure}[H]
+            \centering
+               \includegraphics[width=1.00\textwidth]{bookmarks}
+	       \caption{Navigating to the `Bookmarks' page.}
+		\label{fig:nav_bookmark}
+        \end{figure}
+\newpage
+        On the Bookmarks page, enter a `Link Label' for your bookmark. The `Link Label' will be the text displayed to the users in REDCap on the left sidebar under `Project Bookmarks'. For our example in Figure~\ref{fig:link_label}, we enter `Print forms' for our `Link Label'. Then in the `Link URL/Destination' box, enter your REDCap base URL(the part of the URL before the REDCap version; an example is circled in red in Figure ~\ref{fig:link_label}) followed by `/plugins/form/index.php'. Using our example in Figure~\ref{fig:link_label}, we would be entering \newline `http://localhost:7080/redcap/plugins/form/index.php' in the `Link URL/Destination' box.
+	\begin{figure}[H]
+	     \centering
+             \includegraphics[width=1.00\textwidth]{url_2}
+	     \caption{Entering the `Link URL/Destination' for the bookmark.} 
+	     \label{fig:link_label}
+	\end{figure}
+\newpage
+
+	Select the `Append project ID to URL' checkbox. If you do not select this, the plugin will not work. When you are done, click the `Add' button to create your new bookmark.
+	\begin{figure}[H]
+	    \centering
+            \includegraphics[width=1.00\textwidth]{small_add_2}
+     	    \caption{Adding the bookmark to REDCap.}
+	    \label{fig:append_pid} 
+	\end{figure}
+	\newpage
+        You should now see your Link Label in the sidebar under `Project Bookmarks'. In Figure \ref{fig:link_label}, we entered `Print forms' as our link label. If you select `Print forms', a zip file of all the PDF forms in the project will start to download to your local system.
+	\begin{figure}[H]
+	     \centering
+             \includegraphics[width=.35\textwidth]{sidebar}
+     	     \caption{The REDCap sidebar with a bookmark for The Advanced REDCap Form Plugin.} 
+	\end{figure}
+
+%###########################
+% Advanced Configuration Features
+%###########################
+\section{Advanced Configuration Features} \label{sec:clinician}
+The Advanced REDCap Form Plugin allows users to specify constraints on branching logic in order to print customized forms. 
+In our example, we have a clinician who consistently knows whether the patient he is going to see is male or female before the visit. The clinician would like to have 2 bookmarks for printing his forms, one that prints forms for male patients and another that prints the forms for the female patients. We could use the Advanced Configuration Features to accomplish this by following the steps below.
+    \subsection{Creating a Constraint File to Print Forms Based on Branching Logic}
+    	Create a constraint file named const\_\#.cfg where \# is our project id. In order to get your project id, go to the `Project Home' page. Then look at your URL; at the end, you should see `?pid=' followed by a number. The number is your project id. In our example, our project id is 1. We then create a file named `const\_1.cfg'.
+	\begin{figure}[H]
+            \centering
+            \includegraphics[width=1.00\textwidth]{pid}
+            \caption{Locating the `pid' to create a constraint file.}
+        \end{figure}
+	\newpage
+	Open the constraint file in a text editor. Now we need to decide on section names for each bookmark. Ideally we want to keep our section names short yet descriptive. For our project, we choose `male' and `female' . We then type `[male]' and `[female]' into our constraint file. Make sure to surround your section names with square brackets.
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=1.00\textwidth]{headings}
+	    \caption{A constraint file with section names `male' and `female'.}
+        \end{figure}
+	Now we need get the field name along with the indexes of the choices for the gender of the patient in order to specify the branching logic in our constraint file. Since we don't know this offhand, we download the data dictionary and open it with Microsoft Excel. The data dictionary can be found on the `Project Revision History' tab.
+	\begin{figure}[H]
+            \centering
+            \includegraphics[width=1.00\textwidth]{data_dict}
+            \caption{Downloading the data dictionary.}
+        \end{figure}
+	\newpage
+	In Microsoft Excel, we can find the field name in column A and the corresponding indexes for choices in column F. In our example, the field name we are concerned with is `sex' and the indexes are `0' for female and `1' for male.
+	\begin{figure}[H]
+            \centering
+            \includegraphics[width=1.00\textwidth]{branch_indexes}
+	    \caption{Getting the field name and indexes from the data dictionary for the constraint file.}         
+\end{figure}
+	Now that we have the field name and the indexes, we can add them to our constraint file. Since the index `1' was associated with Male in our data dicationary, we write `sex=[1]' under our `[male]' section. Likewise, index `0' was associated with Female, so we write `sex=[0]' under our `[female]' section and save our constraint file.
+	 \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.65\textwidth]{const}
+   	    \caption{Adding constraints to the constraint file for a project.}
+            \label{fig:const_sec}
+        \end{figure}
+         The finished constraint file needs to be placed on your server in the `plugins/form/config\_files/' directory. If there is an existing constraint file with the same name, you need to merge them together, otherwise you may break existing bookmarks.
+	\newpage
+	Finally, we need to add our new constraints as bookmarks. Enter an appropriate `Link Label' and check the `Append project ID to URL' checkbox. Then enter your base REDCap URL followed by `/plugins/form/index.php?const=section', where section is the section name you specified in the constraint file.
+\\
+
+ In our case, we would enter `http//localhost:7080/redcap/plugins/form/index.php?const=male' for the male forms and `http://localhost:7080/redcap/plugins/form/index.php?const=female' for the female forms. Once we hit `add', our bookmarks should be displayed in the left sidebar.
+ 	\begin{figure}[H]
+            \centering
+            \includegraphics[width=1.00\textwidth]{const_bookmark}
+	    \caption{Setting up bookmarks to use the sectons in then constraint file.}
+            \label{fig:const_url}
+	\end{figure}
+    
+    \subsection{Using a Constraint File to Only Print Certain Forms}\label{sec:print_forms}
+    	In certain cases, a user might want to create a bookmark that only prints certain forms in the project instead of printing all of the forms in the zip file. This can also be accomplished by using the constraint file. 
+\\
+
+     	Continuing with our example from Section~\ref{sec:clinician}, our clinician only wants to print the forms `Demographics', `Baseline\_data', `Completion\_data', and `Month 1 Data' for the male patients and the forms `Demographics', `Baseline\_data', `Completion\_data', and `Month 2 data' for the female patients. 
+\\
+
+	In our constraint file, we use the `\_\_forms' value to specify which forms we want to print for each bookmark. If `\_\_forms' is not specified under a section, all the forms will print for that bookmark. In our example, under `[male]' we specify `\_\_forms=demographics, baseline\_data, completion\_data, month\_1\_data' and under `[female]' we specify `\_\_forms=demographics, baseline\_data, completion\_data, month\_2\_data' 
+ 	\begin{figure}[H]
+            
+            \centering
+            \includegraphics[width=1.00\textwidth]{forms}
+            \caption{Configuring the constraint file to only print certain forms.}
+	    \label{fig:const_bookmark}
+	\end{figure}
+
+    \subsection{Global Constraints}
+    	For some projects, you might find that you have some constraints that you would like to apply to all bookmarks you create which have a section specified in the constraint file. We can use the global section name `[base]' in order to accomplish this. Any constraints that we specify under the section heading `[base]' will be applied to all section bookmarks for the project.
+\\
+
+    	We will continue with our example from Section~\ref{sec:print_forms}, where we specified which forms we wanted to print for male and female patients. We can see that the forms `Demographics', `Baseline\_data', and `Completion\_data' were specified for both male and female patients. Instead of typing these out twice, we can specify these forms under the `[base]' section so we do not have to specify them individually in each section. 
+\\
+
+	To use global constraints in your constraint file, you need to use the `[base]' section. Under the `[base]' section, you can specify any constraint that you want for all sections in your project. In our example, we want to specify certain forms that will print for all sections. We add  `\_\_forms=demographics, baseline\_data, completion\_data' under `[base]' in our constraint file. This will print the `Demographics', `Baseline\_data', and `Completion\_data' forms for all sections in the constraint file, but we also want to print the `month\_1\_data' for male patients and the `month\_2\_data for the female patients. We then add `\_\_forms=month\_1\_data' under the`[male]' section and `\_\_forms=month\_2\_data' under the `[female]' section.	
+	\begin{figure}[H]
+            \centering
+            \includegraphics[width=1.00\textwidth]{global_const}
+            \caption{Using the global section header `base'.}
+            \label{fig:global_const}
+	\end{figure}
+    \subsection{Printing the Constraint Section Names on the PDF}
+	If you would like the name of the constraint section to be printed on the PDF, add `\_\_print\_name=True' under the constraint section name. So in our example, if we add `\_\_print\_name=True' beneath `[female]` then the name of our form on the PDF would be `female - Demographics' instead of just `Demographics'. Likewise, if we added `\_\_print\_name=True' under `[male]', the form name would be 'male - Demographics' for the male form. We can also add `\_\_print\_name=True' under the `[base]' section header, in which case all constraint section names would be printed on their respecive forms.
+\newpage
+%#############
+% The PDF Forms
+%#############
+\section{The PDF Forms}
+Figures~\ref{fig:female_form} and~\ref{fig:male_form}  show the generated PDF versions of the `Demographics' form from our `female' and `male' patient example using the `Example Database' in REDCap. 
+\\
+
+In Figure~\ref{fig:female_form}, you can see that the pregnancy questions are indented under the gender question. This is because the pregnancy questions have branching logic dependent on the response of the gender question. You will also notice that the male form, Figure~\ref{fig:male_form},  does not have the pregnancy questions under the gender questions. This is because of how the branching logic is set up to only display those questions for female patients and how we configured the constraint file in the above example. 
+\\
+
+In both forms you can see how the plugin renders some of the different question types in REDCap. Also note that if we did not use a constraint file, the `Demographics' form would print exactly the same as the female form, as there are no questions that are only asked if the patient is male in our example. Whenever a constraint file is not used, all questions will print and questions with branching logic will be indented.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.00\textwidth]{female_doc}
+        \caption{The female Demographics form for the `Example Database'.}
+       	\label{fig:female_form}
+   \end{figure}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.00\textwidth]{male_doc}
+        \caption{The male Demographics form for the `Example Database'.}
+        \label{fig:male_form}
+    \end{figure}
+
+%##############
+% Errors
+%##############
+\section{Error and Warning Messages}
+\subsection{`Was not able to get the Project ID. Please contact your REDCap Administrator.'} 
+If you get the error message in Figure~\ref{fig:pid_error} when you select your bookmark, it means that you did not select the 'Append project ID to URL' checkbox when setting up the bookmark. Please see Figure~\ref{fig:append_pid} for reference on how to set up the bookmark so you no longer get this error message.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.00\textwidth]{pid_error}
+        \caption{Project ID Error.}
+       	\label{fig:pid_error}
+   \end{figure}
+\subsection{`The specified constraint was not found in the constraint file for your project. Printing form(s) with all fields.'}
+If you get the warning message in Figure~\ref{fig:const_warning}, it means that the constraint file or bookmark URL were not properly set up. The forms will still print if this warning is present, but none of the specified constraints will be used; the entire form will print as if you did not have a constraint file.
+
+To fix this warning, make sure that when entering the URL for the project bookmark that you specify the constraint section exactly the same as you did in the constraint file. Please see Figure~\ref{fig:const_sec} and Figure~\ref{fig:const_url} for reference.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.00\textwidth]{warning}
+        \caption{Constraint File Warning.}
+       	\label{fig:const_warning}
+   \end{figure}
+\subsection{`An Error occurred while trying to generate the PDF's for the project. Please contact your REDCap Administrator to report the error.'}
+If you encounter this error, it means that there was an error within the Python code. When this happens, an error log called `pdf\_error\_log.txt' is created and placed in the `temp' folder located in the main directory where the `database.php' file is located. If you open `pdf\_error\_log.txt', you will see more information about the error that occured. Feel free to fix the error yourself or report the bug to Stacey Wrazien at wraziens@email.chop.edu. 
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.00\textwidth]{python_error}
+        \caption{Python Error.}
+       	\label{fig:Python Error}
+   \end{figure}
+\end{document}
