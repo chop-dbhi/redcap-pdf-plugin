@@ -13,8 +13,4 @@ To Install
 -------------------
 Please see 'user-guide.pdf' in the 'docs' folder.
 
-
-To report bugs or feature suggestions please contact Stacey Wrazien at
-wraziens@email.chop.edu.
-
 Enjoy!
