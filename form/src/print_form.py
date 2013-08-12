@@ -40,7 +40,7 @@ class ConstraintError(Exception):
 
 def clean_html(text):
     '''Return a string with the html elements removed.
-    
+
     Arguments:
     text -- The text to remove html tags from.
     '''
@@ -87,11 +87,11 @@ class PdfForm(object):
         '''
         multiline = True
         if not self.config:
-            raise ValueError("self.config is {config}: Please set the config \
-                    file before adding constraint.".format(config=self.config))
+            raise ValueError("self.config is {config}: Please set the config"
+                    " file before adding constraint.".format(config=self.config))
 
         sections = ['base', const_section]
-        
+
         for sec in sections:
             if self.config.has_section(sec):
                 for name, vals in self.config.items(sec):
@@ -141,9 +141,9 @@ class PdfForm(object):
         choices.
         '''
         vals = choices.split("\\n")
-        
+
         if len(vals) > 1:
-            return map(lambda c: c.lstrip(' 0123456789').lstrip(',').strip(' '), 
+            return map(lambda c: c.lstrip(' 0123456789').lstrip(',').strip(' '),
                        vals)
         else:
             vals = choices.split("|", 2)
@@ -152,7 +152,7 @@ class PdfForm(object):
             elif len(vals) == 1:
                 one = re.match("\s?[0-9.-]*\s?,\s?(.*)",vals[0]);
                 if one:
-                    return [one.group(1)] 
+                    return [one.group(1)]
         return None
 
     def _get_level(self, names):
@@ -172,7 +172,7 @@ class PdfForm(object):
 
                 if long_form:
                     v = long_form.group(2)
-                
+
                 word = re.search('\[([a-z_0-9\(\)]*)\]([0-9 \'=]*)', v)
                 if word != None:
                     val = word.group(2)
@@ -233,7 +233,7 @@ class PdfForm(object):
                             self.all_forms.stop_indent()
                         num += 1
                 self.indent_stack[cur_field] = high + 1
-   
+
     def __reset_indent(self):
         if self.indent_stack != {}:
             top = sorted(self.indent_stack.values()).pop()
@@ -243,13 +243,13 @@ class PdfForm(object):
     def _create_form(self, const, form_name):
         if const != None:
             self.doc = RedcapForm("{constraint}_{form_name}.pdf"
-                    .format(constraint=const, form_name=form_name), 
+                    .format(constraint=const, form_name=form_name),
                     self.multiline, self.header_box
             )
         else:
             self.doc = RedcapForm("{form_name}.pdf".format(
                 form_name=form_name),self.multiline, self.header_box
-            ) 
+            )
         if self.print_const_name != None:
             self.doc.print_const_name(self.print_const_name)
             self.all_forms.print_const_name(self.print_const_name)
@@ -263,12 +263,12 @@ class PdfForm(object):
         '''
         self.all_forms = RedcapForm('ALL.pdf', self.multiline, self.header_box)
         self.all_forms.setup()
-        
+
         try:
             iterator = self.tree.iter('item')
         except AttributeError:
-            iterator = self.tree.findall('.//*')
-        
+            iterator = self.tree.findall('item')
+
         for item in iterator:
             form_name = item.findtext('form_name')
             if self.to_print == [] or form_name in self.to_print:
@@ -283,18 +283,18 @@ class PdfForm(object):
                     self.doc.render()
                     self.__reset_indent()
                     self._create_form(const, item.findtext('form_name'))
-                    
+
                     self.indent_stack = {}
                     if self.print_const_name != None:
                         self.doc.print_const_name(self.print_const_name)
                         self.all_forms.print_const_name(self.print_const_name)
-                    if not self.all_same_page: 
+                    if not self.all_same_page:
                         if self.all_forms.form_name_current:
                             self.all_forms.remove_header_footer(
                                     self.all_forms.form_name_current)
                         self.all_forms.new_page()
                     self.all_forms.form_name(prop_name)
-                    
+
                     self.cur_form = item.findtext('form_name')
 
                 redcap_types = {
@@ -338,11 +338,11 @@ class PdfForm(object):
                         field_type = spec
                 choices = self._get_choices(item.findtext(
                         'select_choices_or_calculations'))
-                if (branching_logic =='' or 
+                if (branching_logic =='' or
                     self.logic_parser.evaluate(field_name, branching_logic)):
                     if self._indent != '':
                         logic_vals = self._get_level(branching_logic)
-                        indent_stack = self._indent_ques(logic_vals, 
+                        indent_stack = self._indent_ques(logic_vals,
                                                          field_name)
                     if item.findtext('section_header'):
                         self.doc.section_name(clean_html(item.findtext(
@@ -403,15 +403,15 @@ def main(argv=None):
         const_name = None
         config_file = None
     else:
-        raise ArgumentError('Received %(received)s argument(s) instead of the \
-        expected %(expected)s argument(s).' %({'received': str(len(argv)),
+        raise ArgumentError("Received %(received)s argument(s) instead of the"
+        " expected %(expected)s argument(s)." %({'received': str(len(argv)),
         'expected': '1-5',}))
-    
+
     if config_file!= None and const_name != None:
         configuration = os.path.join(os.path.join(os.path.dirname(
                 os.path.dirname(inspect.getfile(inspect.currentframe()))),
-                'config_files'), config_file) 
-        
+                'config_files'), config_file)
+
         form = PdfForm(xml_data, configuration)
         form.add_constraint_list(const_name)
     else:
