@@ -80,6 +80,8 @@ class LogicParser(object):
                 return False
             else:
                 return True
+        if not self.no_print_regex:
+            return True
 
     def evaluate(self, var_name, logic):
         ''' Return True if the element is not constrained by any elements in
